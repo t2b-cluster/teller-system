@@ -1,0 +1,12 @@
+{
+  "name": "teller-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Teller System - Microservices Architecture",
+  "scripts": {
+    "install:all": "npm --prefix services/transfer-service install && npm --prefix services/transaction-service install && npm --prefix services/reconciliation-service install && npm --prefix services/notification-service install",
+    "build:all": "npm --prefix services/transfer-service run build && npm --prefix services/transaction-service run build && npm --prefix services/reconciliation-service run build && npm --prefix services/notification-service run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  }
+}

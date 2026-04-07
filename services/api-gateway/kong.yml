@@ -1,0 +1,86 @@
+_format_version: "3.0"
+
+services:
+  # ── Transfer Service ──
+  - name: transfer-service
+    url: http://transfer-service:3001
+    routes:
+      - name: transfer-routes
+        paths:
+          - /api/v1/transfers
+        strip_path: false
+        methods:
+          - GET
+          - POST
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: redis
+          redis_host: redis
+          redis_port: 6379
+          redis_password: tellerpass
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Content-Type", "Authorization", "x-idempotency-key"]
+
+  # ── Transaction Service ──
+  - name: transaction-service
+    url: http://transaction-service:3002
+    routes:
+      - name: transaction-routes
+        paths:
+          - /api/v1/transactions
+        strip_path: false
+        methods:
+          - GET
+      - name: balance-routes
+        paths:
+          - /api/v1/balance
+        strip_path: false
+        methods:
+          - GET
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 200
+          policy: redis
+          redis_host: redis
+          redis_port: 6379
+          redis_password: tellerpass
+
+  # ── Reconciliation Service ──
+  - name: reconciliation-service
+    url: http://reconciliation-service:3003
+    routes:
+      - name: reconciliation-routes
+        paths:
+          - /api/v1/reconciliation
+        strip_path: false
+        methods:
+          - GET
+
+  # ── Notification Service ──
+  - name: notification-service
+    url: http://notification-service:3004
+    routes:
+      - name: notification-routes
+        paths:
+          - /api/v1/notifications
+        strip_path: false
+        methods:
+          - GET
+
+# ── Global Plugins ──
+plugins:
+  - name: request-transformer
+    config:
+      add:
+        headers:
+          - "X-Request-ID:$(uuid)"
+  - name: file-log
+    config:
+      path: /dev/stdout
+      reopen: true
