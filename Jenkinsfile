@@ -188,7 +188,7 @@ pipeline {
             if (flag.toBoolean()) {
               dir("services/${svc}") {
                 sh 'npm ci --legacy-peer-deps'
-                sh 'npm run test:cov -- --ci --reporters=default --reporters=jest-junit'
+                sh 'npm run test:cov -- --ci'
               }
             }
           }
