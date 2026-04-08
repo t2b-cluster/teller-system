@@ -44,22 +44,33 @@ pipeline {
     stage('Detect Changes') {
       steps {
         script {
+          // Fetch full history for diff
+          sh 'git fetch --unshallow || git fetch --all || true'
+
           def changes = ''
           def buildAll = false
 
+          // Try multiple diff strategies
           try {
-            changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+            changes = sh(script: "git diff --name-only HEAD~1 HEAD 2>/dev/null || echo ''", returnStdout: true).trim()
           } catch (Exception e) {
-            echo "Cannot detect changes (initial commit?) — building ALL services"
+            changes = ''
+          }
+
+          if (changes.isEmpty()) {
+            try {
+              changes = sh(script: "git log --name-only --pretty=format: -1 HEAD 2>/dev/null || echo ''", returnStdout: true).trim()
+            } catch (Exception e) {
+              changes = ''
+            }
+          }
+
+          if (changes.isEmpty()) {
+            echo "Cannot detect changes — building ALL services"
             buildAll = true
           }
 
-          if (!buildAll && changes.isEmpty()) {
-            echo "No file changes detected — building ALL services"
-            buildAll = true
-          }
-
-          echo "Changed files:\n${changes}"
+          echo "Changed files:\n${changes ?: '(build all)'}"
 
           env.SHARED_CHANGED       = (buildAll || changes.contains('shared/')).toString()
           env.BUILD_AUTH            = (buildAll || changes.contains('services/auth-service/') || changes.contains('shared/')).toString()
@@ -69,7 +80,6 @@ pipeline {
           env.BUILD_NOTIFICATION    = (buildAll || changes.contains('services/notification-service/') || changes.contains('shared/')).toString()
           env.BUILD_FRONTEND        = (buildAll || changes.contains('services/frontend/')).toString()
 
-          env.SERVICES_TO_BUILD = ''
           def list = []
           if (env.BUILD_AUTH.toBoolean())           list << 'auth-service'
           if (env.BUILD_TRANSFER.toBoolean())       list << 'transfer-service'
@@ -81,6 +91,7 @@ pipeline {
 
           env.ANY_SERVICE_CHANGED = (list.size() > 0).toString()
 
+          echo "ANY_SERVICE_CHANGED = ${env.ANY_SERVICE_CHANGED}"
           echo "Services to build: ${env.SERVICES_TO_BUILD}"
         }
       }
