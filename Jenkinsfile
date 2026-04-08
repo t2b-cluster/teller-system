@@ -72,6 +72,13 @@ pipeline {
 
           echo "Changed files:\n${changes ?: '(build all)'}"
 
+          // If changes don't match any service/shared path, build all
+          def matchesAnyService = changes.contains('services/') || changes.contains('shared/')
+          if (!buildAll && !matchesAnyService) {
+            echo "Changed files are outside services/ and shared/ (e.g. Jenkinsfile, k8s/) — building ALL services"
+            buildAll = true
+          }
+
           env.SHARED_CHANGED       = (buildAll || changes.contains('shared/')).toString()
           env.BUILD_AUTH            = (buildAll || changes.contains('services/auth-service/') || changes.contains('shared/')).toString()
           env.BUILD_TRANSFER        = (buildAll || changes.contains('services/transfer-service/') || changes.contains('shared/')).toString()
