@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY shared/ ./shared/
 COPY services/transaction-service/package*.json ./services/transaction-service/
-RUN cd services/transaction-service && npm install
+RUN cd services/transaction-service && npm install --legacy-peer-deps
 COPY services/transaction-service/ ./services/transaction-service/
 RUN cd services/transaction-service && npm run build
 

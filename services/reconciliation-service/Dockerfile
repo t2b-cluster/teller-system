@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY shared/ ./shared/
 COPY services/reconciliation-service/package*.json ./services/reconciliation-service/
-RUN cd services/reconciliation-service && npm install
+RUN cd services/reconciliation-service && npm install --legacy-peer-deps
 COPY services/reconciliation-service/ ./services/reconciliation-service/
 RUN cd services/reconciliation-service && npm run build
 

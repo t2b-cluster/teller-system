@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY shared/ ./shared/
 COPY services/auth-service/package*.json ./services/auth-service/
-RUN cd services/auth-service && npm install
+RUN cd services/auth-service && npm install --legacy-peer-deps
 COPY services/auth-service/ ./services/auth-service/
 RUN cd services/auth-service && npm run build
 

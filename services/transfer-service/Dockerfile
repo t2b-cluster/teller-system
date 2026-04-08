@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY shared/ ./shared/
 COPY services/transfer-service/package*.json ./services/transfer-service/
-RUN cd services/transfer-service && npm install
+RUN cd services/transfer-service && npm install --legacy-peer-deps
 COPY services/transfer-service/ ./services/transfer-service/
 RUN cd services/transfer-service && npm run build
 
