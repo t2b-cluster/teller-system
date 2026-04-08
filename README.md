@@ -141,9 +141,37 @@ cd services/reconciliation-service && npx jest --coverage
 cd services/notification-service && npx jest --coverage
 ```
 
-### E2E Tests
+### E2E Tests (Playwright)
 
 ต้อง start ทุก service ก่อน แล้วรัน:
+
+```bash
+cd e2e
+npm install
+npx playwright test
+```
+
+สร้าง HTML report:
+
+```bash
+cd e2e && npx playwright test --reporter=html
+```
+
+report จะอยู่ที่ `e2e/playwright-report/index.html`
+
+รัน test เฉพาะ scenario:
+
+```bash
+cd e2e
+npx playwright test e2e-01          # Race Condition
+npx playwright test e2e-02          # Idempotency
+npx playwright test e2e-07          # Authentication
+npx playwright test --grep "cache"  # ค้นหาตามชื่อ test
+```
+
+### E2E Tests (Shell Script)
+
+ทางเลือก — รันด้วย bash script:
 
 ```bash
 bash e2e/run-all.sh

@@ -1,0 +1,11 @@
+{
+  "name": "teller-e2e",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "test:report": "npx playwright test --reporter=html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
