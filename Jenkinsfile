@@ -44,16 +44,30 @@ pipeline {
     stage('Detect Changes') {
       steps {
         script {
-          def changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+          def changes = ''
+          def buildAll = false
+
+          try {
+            changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+          } catch (Exception e) {
+            echo "Cannot detect changes (initial commit?) — building ALL services"
+            buildAll = true
+          }
+
+          if (!buildAll && changes.isEmpty()) {
+            echo "No file changes detected — building ALL services"
+            buildAll = true
+          }
+
           echo "Changed files:\n${changes}"
 
-          env.SHARED_CHANGED       = changes.contains('shared/').toString()
-          env.BUILD_AUTH            = (changes.contains('services/auth-service/') || changes.contains('shared/')).toString()
-          env.BUILD_TRANSFER        = (changes.contains('services/transfer-service/') || changes.contains('shared/')).toString()
-          env.BUILD_TRANSACTION     = (changes.contains('services/transaction-service/') || changes.contains('shared/')).toString()
-          env.BUILD_RECONCILIATION  = (changes.contains('services/reconciliation-service/') || changes.contains('shared/')).toString()
-          env.BUILD_NOTIFICATION    = (changes.contains('services/notification-service/') || changes.contains('shared/')).toString()
-          env.BUILD_FRONTEND        = changes.contains('services/frontend/').toString()
+          env.SHARED_CHANGED       = (buildAll || changes.contains('shared/')).toString()
+          env.BUILD_AUTH            = (buildAll || changes.contains('services/auth-service/') || changes.contains('shared/')).toString()
+          env.BUILD_TRANSFER        = (buildAll || changes.contains('services/transfer-service/') || changes.contains('shared/')).toString()
+          env.BUILD_TRANSACTION     = (buildAll || changes.contains('services/transaction-service/') || changes.contains('shared/')).toString()
+          env.BUILD_RECONCILIATION  = (buildAll || changes.contains('services/reconciliation-service/') || changes.contains('shared/')).toString()
+          env.BUILD_NOTIFICATION    = (buildAll || changes.contains('services/notification-service/') || changes.contains('shared/')).toString()
+          env.BUILD_FRONTEND        = (buildAll || changes.contains('services/frontend/')).toString()
 
           env.SERVICES_TO_BUILD = ''
           def list = []
