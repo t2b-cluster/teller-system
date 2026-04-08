@@ -1,0 +1,643 @@
+# =============================================================================
+# Teller System — Kubernetes Deployment Manifests
+# All services: Auth, Transfer, Transaction, Reconciliation, Notification, Frontend
+# Registry: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b (Artifact Registry)
+# Namespace: tellersystem_uat
+# =============================================================================
+
+# ── ConfigMap (non-sensitive config) ──
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: teller-config
+  namespace: tellersystem_uat
+data:
+  DB_HOST: "192.168.50.41"
+  DB_PORT: "1433"
+  DB_DATABASE: "teller_db"
+  DB_USERNAME: "sa"
+  REDIS_HOST: "192.168.10.20"
+  REDIS_PORT: "6379"
+  AUTH_SERVICE_URL: "http://auth-service:3005"
+  TRANSFER_SERVICE_URL: "http://transfer-service:3001"
+  TRANSACTION_SERVICE_URL: "http://transaction-service:3002"
+  RECONCILIATION_SERVICE_URL: "http://reconciliation-service:3003"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:3004"
+
+---
+# ── Secret (sensitive — change in production) ──
+apiVersion: v1
+kind: Secret
+metadata:
+  name: teller-secret
+  namespace: tellersystem_uat
+type: Opaque
+stringData:
+  DB_PASSWORD: "CHANGE_ME_IN_PRODUCTION"
+  REDIS_PASSWORD: "CHANGE_ME_IN_PRODUCTION"
+  JWT_SECRET: "CHANGE_ME_IN_PRODUCTION"
+
+---
+# =============================================================================
+# Auth Service — JWT Authentication (Port 3005)
+# Replicas: 2 | HPA Max: 5
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: tellersystem_uat
+  labels:
+    app: auth-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/auth-service:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3005
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3005"
+          envFrom:
+            - configMapRef:
+                name: teller-config
+            - secretRef:
+                name: teller-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3005
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3005
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: tellersystem_uat
+  labels:
+    app: auth-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3005
+      targetPort: 3005
+      protocol: TCP
+  selector:
+    app: auth-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# =============================================================================
+# Transfer Service — โอนเงิน + Idempotency + Outbox (Port 3001)
+# Replicas: 3 | HPA Max: 10
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transfer-service
+  namespace: tellersystem_uat
+  labels:
+    app: transfer-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: transfer-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: transfer-service
+    spec:
+      containers:
+        - name: transfer-service
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/transfer-service:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3001"
+            - name: QUEUE_NAME
+              value: "transfer-queue"
+          envFrom:
+            - configMapRef:
+                name: teller-config
+            - secretRef:
+                name: teller-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transfer-service
+  namespace: tellersystem_uat
+  labels:
+    app: transfer-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+  selector:
+    app: transfer-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: transfer-service-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: transfer-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# =============================================================================
+# Transaction Service — ประวัติธุรกรรม + ยอดคงเหลือ (Port 3002)
+# Replicas: 3 | HPA Max: 10
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-service
+  namespace: tellersystem_uat
+  labels:
+    app: transaction-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: transaction-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: transaction-service
+    spec:
+      containers:
+        - name: transaction-service
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/transaction-service:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3002
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3002"
+          envFrom:
+            - configMapRef:
+                name: teller-config
+            - secretRef:
+                name: teller-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transaction-service
+  namespace: tellersystem_uat
+  labels:
+    app: transaction-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3002
+      targetPort: 3002
+      protocol: TCP
+  selector:
+    app: transaction-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: transaction-service-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: transaction-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# =============================================================================
+# Reconciliation Service — Outbox Worker + Reconcile (Port 3003)
+# Replicas: 1 | HPA Max: 3
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reconciliation-service
+  namespace: tellersystem_uat
+  labels:
+    app: reconciliation-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reconciliation-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: reconciliation-service
+    spec:
+      containers:
+        - name: reconciliation-service
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/reconciliation-service:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3003
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3003"
+            - name: QUEUE_NAME
+              value: "reconciliation-queue"
+          envFrom:
+            - configMapRef:
+                name: teller-config
+            - secretRef:
+                name: teller-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reconciliation-service
+  namespace: tellersystem_uat
+  labels:
+    app: reconciliation-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3003
+      targetPort: 3003
+      protocol: TCP
+  selector:
+    app: reconciliation-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reconciliation-service-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reconciliation-service
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# =============================================================================
+# Notification Service — Queue Consumer (Port 3004)
+# Replicas: 2 | HPA Max: 5
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: tellersystem_uat
+  labels:
+    app: notification-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/notification-service:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3004
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3004"
+            - name: QUEUE_NAME
+              value: "notification-queue"
+          envFrom:
+            - configMapRef:
+                name: teller-config
+            - secretRef:
+                name: teller-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3004
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3004
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: tellersystem_uat
+  labels:
+    app: notification-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3004
+      targetPort: 3004
+      protocol: TCP
+  selector:
+    app: notification-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: notification-service-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: notification-service
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# =============================================================================
+# Frontend — React App + Nginx (Port 80)
+# Replicas: 2 | HPA Max: 5
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tellersystem_uat
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b/frontend:IMAGE_TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: tellersystem_uat
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: frontend
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  namespace: tellersystem_uat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
