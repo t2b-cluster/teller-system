@@ -187,7 +187,7 @@ pipeline {
           backendMap.each { svc, flag ->
             if (flag.toBoolean()) {
               dir("services/${svc}") {
-                sh 'npm ci'
+                sh 'npm ci --legacy-peer-deps'
                 sh 'npm run test:cov -- --ci --reporters=default --reporters=jest-junit'
               }
             }
