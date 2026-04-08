@@ -272,7 +272,7 @@ pipeline {
       when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
       steps {
         dir('e2e') {
-          sh 'npm ci'
+          sh 'npm install'
           sh 'npx playwright test --reporter=html || true'
         }
       }
