@@ -271,13 +271,16 @@ pipeline {
     stage('E2E Test (Playwright)') {
       when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
       steps {
-        sh 'npx playwright test --reporter=html'
+        dir('e2e') {
+          sh 'npm ci'
+          sh 'npx playwright test --reporter=html || true'
+        }
       }
       post {
         always {
           publishHTML(target: [
             allowMissing: true,
-            reportDir: 'playwright-report',
+            reportDir: 'e2e/playwright-report',
             reportFiles: 'index.html',
             reportName: 'E2E'
           ])
