@@ -132,7 +132,7 @@ pipeline {
             def harborImage = "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${svc}:${IMAGE_TAG}"
             def arImage     = "${AR_REGISTRY}/${svc}:${IMAGE_TAG}"
             sh """
-              docker build -t ${harborImage} -f services/${svc}/Dockerfile .
+              docker build --no-cache -t ${harborImage} -f services/${svc}/Dockerfile .
               docker tag ${harborImage} ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${svc}:latest
               docker tag ${harborImage} ${arImage}
               docker tag ${harborImage} ${AR_REGISTRY}/${svc}:latest
