@@ -19,6 +19,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
       extra: {
         trustServerCertificate: true,
         pool: { max: 10, min: 2, idleTimeoutMillis: 10000 },
+        options: { encrypt: false },
       },
     }),
     JwtModule.register({

@@ -25,7 +25,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
         trustServerCertificate: true,
         pool: { max: 20, min: 5, idleTimeoutMillis: 10000 },
         options: {
-          encrypt: true,
+          encrypt: false,
           connectRetryCount: 3,
           connectRetryInterval: 1000,
         },

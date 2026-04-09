@@ -24,6 +24,7 @@ import { Account } from './entities/account.entity';
       extra: {
         trustServerCertificate: true,
         pool: { max: 10, min: 2, idleTimeoutMillis: 10000 },
+        options: { encrypt: false },
       },
     }),
     BullModule.forRoot({

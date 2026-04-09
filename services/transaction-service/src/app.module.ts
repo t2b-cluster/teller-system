@@ -22,6 +22,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       extra: {
         trustServerCertificate: true,
         pool: { max: 20, min: 5, idleTimeoutMillis: 10000 },
+        options: { encrypt: false },
       },
     }),
     TransactionModule,
