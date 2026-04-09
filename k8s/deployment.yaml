@@ -2,7 +2,7 @@
 # Teller System — Kubernetes Deployment Manifests
 # All services: Auth, Transfer, Transaction, Reconciliation, Notification, Frontend
 # Registry: asia-southeast1-docker.pkg.dev/t2b-cluster/t2b (Artifact Registry)
-# Namespace: tellersystem_uat
+# Namespace: tellersystem-uat
 # =============================================================================
 
 # ── ConfigMap (non-sensitive config) ──
@@ -10,7 +10,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: teller-config
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 data:
   DB_HOST: "192.168.50.41"
   DB_PORT: "1433"
@@ -30,7 +30,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: teller-secret
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 type: Opaque
 stringData:
   DB_PASSWORD: "CHANGE_ME_IN_PRODUCTION"
@@ -46,7 +46,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: auth-service
 spec:
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: auth-service
 spec:
@@ -122,7 +122,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: auth-service-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -147,7 +147,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: transfer-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: transfer-service
 spec:
@@ -209,7 +209,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: transfer-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: transfer-service
 spec:
@@ -225,7 +225,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: transfer-service-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -250,7 +250,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: transaction-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: transaction-service
 spec:
@@ -310,7 +310,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: transaction-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: transaction-service
 spec:
@@ -326,7 +326,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: transaction-service-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -351,7 +351,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reconciliation-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: reconciliation-service
 spec:
@@ -413,7 +413,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: reconciliation-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: reconciliation-service
 spec:
@@ -429,7 +429,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reconciliation-service-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -454,7 +454,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: notification-service
 spec:
@@ -516,7 +516,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: notification-service
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: notification-service
 spec:
@@ -532,7 +532,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: notification-service-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -557,7 +557,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: frontend
 spec:
@@ -610,7 +610,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
   labels:
     app: frontend
 spec:
@@ -626,7 +626,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: frontend-hpa
-  namespace: tellersystem_uat
+  namespace: tellersystem-uat
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

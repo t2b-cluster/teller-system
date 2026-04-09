@@ -23,7 +23,7 @@ pipeline {
     GKE_CLUSTER   = 't2b-gke'
     GKE_REGION    = 'asia-southeast1'
     GKE_PROJECT   = 't2b-cluster'
-    K8S_NAMESPACE = 'tellersystem_uat'
+    K8S_NAMESPACE = 'tellersystem-uat'
   }
 
   options {
