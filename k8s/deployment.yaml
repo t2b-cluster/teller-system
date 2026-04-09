@@ -33,7 +33,7 @@ metadata:
   namespace: tellersystem-uat
 type: Opaque
 stringData:
-  DB_PASSWORD: "T2b@App2024!"
+  DB_PASSWORD: "T2b@Sql2024!"
   REDIS_PASSWORD: "tellerpass"
   JWT_SECRET: "CHANGE_ME_IN_PRODUCTION"
 
