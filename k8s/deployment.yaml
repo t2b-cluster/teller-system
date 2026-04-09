@@ -88,15 +88,13 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 3005
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 3005
             initialDelaySeconds: 15
             periodSeconds: 10
@@ -191,15 +189,13 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 3001
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 3001
             initialDelaySeconds: 15
             periodSeconds: 10
@@ -292,15 +288,13 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 3002
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 3002
             initialDelaySeconds: 15
             periodSeconds: 10
@@ -395,15 +389,13 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 3003
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 3003
             initialDelaySeconds: 15
             periodSeconds: 10
@@ -498,15 +490,13 @@ spec:
               cpu: "1000m"
               memory: "512Mi"
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 3004
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 3004
             initialDelaySeconds: 15
             periodSeconds: 10
