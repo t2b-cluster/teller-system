@@ -1,100 +1,81 @@
 # =============================================================================
-# Kong API Gateway — DB-less mode with declarative config
+# Kong API Gateway — Postgres mode
 # =============================================================================
 
-# ── Kong Config (declarative) ──
+# ── Kong Migration Job ──
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kong-migration
+  namespace: tellersystem-uat
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: kong-migration
+          image: kong:3.6
+          command: ["kong", "migrations", "bootstrap"]
+          env:
+            - name: KONG_DATABASE
+              value: "postgres"
+            - name: KONG_PG_HOST
+              value: "10.30.0.6"
+            - name: KONG_PG_PORT
+              value: "5432"
+            - name: KONG_PG_USER
+              value: "kong"
+            - name: KONG_PG_PASSWORD
+              value: "T2b@Kong2024!"
+            - name: KONG_PG_DATABASE
+              value: "kong"
+
+---
+# ── Kong Config (declarative — loaded via Admin API after boot) ──
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kong-config
   namespace: tellersystem-uat
 data:
-  kong.yml: |
-    _format_version: "3.0"
+  setup-kong.sh: |
+    #!/bin/sh
+    echo "Waiting for Kong Admin API..."
+    until wget -qO- http://localhost:8001/status > /dev/null 2>&1; do sleep 2; done
+    echo "Kong is ready. Configuring routes..."
 
-    services:
-      - name: auth-service
-        url: http://auth-service:3005
-        routes:
-          - name: auth-routes
-            paths:
-              - /api/v1/auth
-            strip_path: false
+    KONG=http://localhost:8001
 
-      - name: transfer-service
-        url: http://transfer-service:3001
-        routes:
-          - name: transfer-routes
-            paths:
-              - /api/v1/transfers
-            strip_path: false
-        plugins:
-          - name: rate-limiting
-            config:
-              minute: 100
-              policy: redis
-              redis_host: redis
-              redis_port: 6379
-              redis_password: tellerpass
-          - name: cors
-            config:
-              origins: ["*"]
-              methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-              headers: ["Content-Type", "Authorization", "x-idempotency-key"]
+    # Auth Service (public)
+    wget -qO- --post-data="name=auth-service&url=http://auth-service:3005" $KONG/services
+    wget -qO- --post-data="name=auth-routes&paths[]=/api/v1/auth&strip_path=false" $KONG/services/auth-service/routes
 
-      - name: transaction-service
-        url: http://transaction-service:3002
-        routes:
-          - name: transaction-routes
-            paths:
-              - /api/v1/transactions
-            strip_path: false
-          - name: balance-routes
-            paths:
-              - /api/v1/balance
-            strip_path: false
-        plugins:
-          - name: rate-limiting
-            config:
-              minute: 200
-              policy: redis
-              redis_host: redis
-              redis_port: 6379
-              redis_password: tellerpass
+    # Transfer Service
+    wget -qO- --post-data="name=transfer-service&url=http://transfer-service:3001" $KONG/services
+    wget -qO- --post-data="name=transfer-routes&paths[]=/api/v1/transfers&strip_path=false" $KONG/services/transfer-service/routes
 
-      - name: reconciliation-service
-        url: http://reconciliation-service:3003
-        routes:
-          - name: reconciliation-routes
-            paths:
-              - /api/v1/reconciliation
-            strip_path: false
+    # Transaction Service
+    wget -qO- --post-data="name=transaction-service&url=http://transaction-service:3002" $KONG/services
+    wget -qO- --post-data="name=transaction-routes&paths[]=/api/v1/transactions&strip_path=false" $KONG/services/transaction-service/routes
+    wget -qO- --post-data="name=balance-routes&paths[]=/api/v1/balance&strip_path=false" $KONG/services/transaction-service/routes
+    wget -qO- --post-data="name=account-routes&paths[]=/api/v1/accounts&strip_path=false" $KONG/services/transaction-service/routes
 
-      - name: notification-service
-        url: http://notification-service:3004
-        routes:
-          - name: notification-routes
-            paths:
-              - /api/v1/notifications
-            strip_path: false
+    # Reconciliation Service
+    wget -qO- --post-data="name=reconciliation-service&url=http://reconciliation-service:3003" $KONG/services
+    wget -qO- --post-data="name=reconciliation-routes&paths[]=/api/v1/reconciliation&strip_path=false" $KONG/services/reconciliation-service/routes
 
-      - name: account-service
-        url: http://transaction-service:3002
-        routes:
-          - name: account-routes
-            paths:
-              - /api/v1/accounts
-            strip_path: false
+    # Notification Service
+    wget -qO- --post-data="name=notification-service&url=http://notification-service:3004" $KONG/services
+    wget -qO- --post-data="name=notification-routes&paths[]=/api/v1/notifications&strip_path=false" $KONG/services/notification-service/routes
 
-    plugins:
-      - name: request-transformer
-        config:
-          add:
-            headers:
-              - "X-Request-ID:$(uuid)"
+    # Rate Limiting
+    wget -qO- --post-data="name=rate-limiting&config.minute=100&config.policy=local" $KONG/plugins
+
+    echo "Kong setup complete."
 
 ---
-# ── Kong Deployment (DB-less) ──
+# ── Kong Deployment (Postgres) ──
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -112,6 +93,13 @@ spec:
       labels:
         app: kong
     spec:
+      initContainers:
+        - name: kong-setup
+          image: kong:3.6
+          command: ["/bin/sh", "/etc/kong-config/setup-kong.sh"]
+          volumeMounts:
+            - name: kong-config-volume
+              mountPath: /etc/kong-config
       containers:
         - name: kong
           image: kong:3.6
@@ -124,9 +112,17 @@ spec:
               name: admin
           env:
             - name: KONG_DATABASE
-              value: "off"
-            - name: KONG_DECLARATIVE_CONFIG
-              value: "/etc/kong/kong.yml"
+              value: "postgres"
+            - name: KONG_PG_HOST
+              value: "10.30.0.6"
+            - name: KONG_PG_PORT
+              value: "5432"
+            - name: KONG_PG_USER
+              value: "kong"
+            - name: KONG_PG_PASSWORD
+              value: "T2b@Kong2024!"
+            - name: KONG_PG_DATABASE
+              value: "kong"
             - name: KONG_PROXY_ACCESS_LOG
               value: "/dev/stdout"
             - name: KONG_ADMIN_ACCESS_LOG
@@ -150,17 +146,14 @@ spec:
             httpGet:
               path: /status
               port: 8001
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /status
               port: 8001
-            initialDelaySeconds: 15
+            initialDelaySeconds: 20
             periodSeconds: 15
-          volumeMounts:
-            - name: kong-config-volume
-              mountPath: /etc/kong
       volumes:
         - name: kong-config-volume
           configMap:
