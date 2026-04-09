@@ -12,4 +12,4 @@ COPY --from=builder /app/services/notification-service/dist ./dist
 COPY --from=builder /app/services/notification-service/node_modules ./node_modules
 COPY --from=builder /app/services/notification-service/package.json ./
 EXPOSE 3004
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

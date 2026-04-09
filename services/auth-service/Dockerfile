@@ -12,4 +12,4 @@ COPY --from=builder /app/services/auth-service/dist ./dist
 COPY --from=builder /app/services/auth-service/node_modules ./node_modules
 COPY --from=builder /app/services/auth-service/package.json ./
 EXPOSE 3005
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

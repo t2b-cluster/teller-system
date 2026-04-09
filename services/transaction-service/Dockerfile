@@ -12,4 +12,4 @@ COPY --from=builder /app/services/transaction-service/dist ./dist
 COPY --from=builder /app/services/transaction-service/node_modules ./node_modules
 COPY --from=builder /app/services/transaction-service/package.json ./
 EXPOSE 3002
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

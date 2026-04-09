@@ -12,4 +12,4 @@ COPY --from=builder /app/services/reconciliation-service/dist ./dist
 COPY --from=builder /app/services/reconciliation-service/node_modules ./node_modules
 COPY --from=builder /app/services/reconciliation-service/package.json ./
 EXPOSE 3003
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
