@@ -296,6 +296,9 @@ pipeline {
 
           sed -i "s|IMAGE_TAG_PLACEHOLDER|${IMAGE_TAG}|g" k8s/*.yaml
 
+          kubectl delete job kong-setup-routes -n ${K8S_NAMESPACE} --ignore-not-found=true
+          kubectl delete job kong-migration -n ${K8S_NAMESPACE} --ignore-not-found=true
+
           kubectl apply -f k8s/ -n ${K8S_NAMESPACE}
         """
         script {
