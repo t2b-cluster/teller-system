@@ -2,7 +2,6 @@
 // Teller System — Monorepo CI/CD Pipeline (NestJS + React)
 // Push: Harbor (scan/storage) + Artifact Registry (GKE pull)
 // Deploy: GKE Cluster
-// NOTE: Stages commented out temporarily for faster deploy debugging
 // =============================================================================
 
 pipeline {
@@ -102,11 +101,24 @@ pipeline {
       }
     }
 
-    // ── SKIPPED: Gitleaks Scan (passed) ──
-    // ── SKIPPED: Trivy Scan (passed) ──
-    // ── SKIPPED: Unit Test + Coverage (passed) ──
-    // ── SKIPPED: SonarQube Analysis (passed) ──
-    // ── SKIPPED: E2E Test (passed) ──
+    stage('Gitleaks Scan') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        sh '''
+          gitleaks detect \
+            --source=. \
+            --report-path=gitleaks-report.json \
+            --report-format=json \
+            --exit-code=1 \
+            --verbose || true
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+        }
+      }
+    }
 
     stage('Build Images') {
       when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
@@ -123,6 +135,94 @@ pipeline {
               docker tag ${harborImage} ${AR_REGISTRY}/${svc}:latest
             """
           }
+        }
+      }
+    }
+
+    stage('Trivy Scan') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        script {
+          def services = env.SERVICES_TO_BUILD.split(',')
+          for (svc in services) {
+            def harborImage = "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${svc}:${IMAGE_TAG}"
+            sh """
+              trivy image \
+                --severity HIGH,CRITICAL \
+                --format json \
+                --output trivy-report-${svc}.json \
+                --exit-code 0 \
+                ${harborImage}
+            """
+            sh """
+              trivy image \
+                --severity CRITICAL \
+                --exit-code 1 \
+                ${harborImage} || true
+            """
+          }
+        }
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'trivy-report-*.json', allowEmptyArchive: true
+        }
+      }
+    }
+
+    stage('Unit Test + Coverage') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        script {
+          def backendMap = [
+            'auth-service':           env.BUILD_AUTH,
+            'transfer-service':       env.BUILD_TRANSFER,
+            'transaction-service':    env.BUILD_TRANSACTION,
+            'reconciliation-service': env.BUILD_RECONCILIATION,
+            'notification-service':   env.BUILD_NOTIFICATION
+          ]
+          backendMap.each { svc, flag ->
+            if (flag.toBoolean()) {
+              dir("services/${svc}") {
+                sh 'npm ci --legacy-peer-deps'
+                sh 'npm run test:cov -- --ci'
+              }
+            }
+          }
+        }
+      }
+      post {
+        always {
+          publishHTML(target: [
+            allowMissing: true,
+            reportDir: 'services/transfer-service/coverage/lcov-report',
+            reportFiles: 'index.html',
+            reportName: 'Coverage'
+          ])
+        }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+          sh """
+            docker run --rm \
+              --network=host \
+              -v \$(pwd):/usr/src \
+              -w /usr/src \
+              sonarsource/sonar-scanner-cli:latest \
+              -Dsonar.projectKey=teller-system \
+              -Dsonar.projectName=teller-system \
+              -Dsonar.sources=services/ \
+              -Dsonar.tests=services/ \
+              -Dsonar.test.inclusions=**/*.spec.ts \
+              -Dsonar.host.url=${SONAR_HOST} \
+              -Dsonar.login=\${SONAR_TOKEN} \
+              -Dsonar.javascript.lcov.reportPaths=**/coverage/lcov.info \
+              -Dsonar.exclusions=**/node_modules/**,**/dist/**
+          """
         }
       }
     }
@@ -162,6 +262,26 @@ pipeline {
       }
     }
 
+    stage('E2E Test (Playwright)') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        dir('e2e') {
+          sh 'npm install'
+          sh 'npx playwright test --reporter=html || true'
+        }
+      }
+      post {
+        always {
+          publishHTML(target: [
+            allowMissing: true,
+            reportDir: 'e2e/playwright-report',
+            reportFiles: 'index.html',
+            reportName: 'E2E'
+          ])
+        }
+      }
+    }
+
     stage('Deploy to GKE') {
       when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
       steps {
@@ -191,6 +311,38 @@ pipeline {
       }
     }
 
+    stage('OWASP ZAP Scan') {
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      steps {
+        script {
+          def serviceUrl = sh(script: """
+            kubectl get svc frontend \
+              -n ${K8S_NAMESPACE} \
+              -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo ''
+          """, returnStdout: true).trim()
+
+          if (serviceUrl) {
+            sh """
+              mkdir -p zap-report
+              docker run --rm \
+                -v \$(pwd)/zap-report:/zap/wrk:rw \
+                ghcr.io/zaproxy/zaproxy:stable \
+                zap-baseline.py \
+                  -t http://${serviceUrl}:80 \
+                  -r zap-report.html \
+                  -J zap-report.json \
+                  -l WARN \
+                  -I || true
+            """
+          }
+        }
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'zap-report/**', allowEmptyArchive: true
+        }
+      }
+    }
   }
 
   post {
