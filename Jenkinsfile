@@ -303,6 +303,13 @@ pipeline {
           sed -i "s|IMAGE_TAG_PLACEHOLDER|${IMAGE_TAG}|g" k8s/*.yaml
 
           kubectl apply -f k8s/ -n ${K8S_NAMESPACE}
+
+          // Force update image on existing deployments
+          def services = env.SERVICES_TO_BUILD.split(',')
+          for (svc in services) {
+            def arImage = "${AR_REGISTRY}/${svc}:${IMAGE_TAG}"
+            sh "kubectl set image deployment/${svc} ${svc}=${arImage} -n ${K8S_NAMESPACE}"
+          }
         """
         script {
           def services = env.SERVICES_TO_BUILD.split(',')

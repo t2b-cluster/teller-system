@@ -8,12 +8,9 @@ kind: Ingress
 metadata:
   name: teller-ingress
   namespace: tellersystem-uat
-  annotations:
-    kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.global-static-ip-name: "teller-ingress-ip"
 spec:
+  ingressClassName: gce
   rules:
-    # ── API Gateway ──
     - host: apigw.teller.ppdoing.com
       http:
         paths:
@@ -25,7 +22,6 @@ spec:
                 port:
                   number: 8000
 
-    # ── Frontend ──
     - host: teller.ppdoing.com
       http:
         paths:
