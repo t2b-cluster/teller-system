@@ -12,11 +12,11 @@ metadata:
   name: teller-config
   namespace: tellersystem-uat
 data:
-  DB_HOST: "192.168.50.41"
+  DB_HOST: "mssql"
   DB_PORT: "1433"
   DB_DATABASE: "teller_db"
   DB_USERNAME: "sa"
-  REDIS_HOST: "192.168.10.20"
+  REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   AUTH_SERVICE_URL: "http://auth-service:3005"
   TRANSFER_SERVICE_URL: "http://transfer-service:3001"
