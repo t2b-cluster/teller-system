@@ -32,50 +32,7 @@ spec:
               value: "kong"
 
 ---
-# ── Kong Config (declarative — loaded via Admin API after boot) ──
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kong-config
-  namespace: tellersystem-uat
-data:
-  setup-kong.sh: |
-    #!/bin/sh
-    echo "Waiting for Kong Admin API..."
-    until wget -qO- http://localhost:8001/status > /dev/null 2>&1; do sleep 2; done
-    echo "Kong is ready. Configuring routes..."
-
-    KONG=http://localhost:8001
-
-    # Auth Service (public)
-    wget -qO- --post-data="name=auth-service&url=http://auth-service:3005" $KONG/services
-    wget -qO- --post-data="name=auth-routes&paths[]=/api/v1/auth&strip_path=false" $KONG/services/auth-service/routes
-
-    # Transfer Service
-    wget -qO- --post-data="name=transfer-service&url=http://transfer-service:3001" $KONG/services
-    wget -qO- --post-data="name=transfer-routes&paths[]=/api/v1/transfers&strip_path=false" $KONG/services/transfer-service/routes
-
-    # Transaction Service
-    wget -qO- --post-data="name=transaction-service&url=http://transaction-service:3002" $KONG/services
-    wget -qO- --post-data="name=transaction-routes&paths[]=/api/v1/transactions&strip_path=false" $KONG/services/transaction-service/routes
-    wget -qO- --post-data="name=balance-routes&paths[]=/api/v1/balance&strip_path=false" $KONG/services/transaction-service/routes
-    wget -qO- --post-data="name=account-routes&paths[]=/api/v1/accounts&strip_path=false" $KONG/services/transaction-service/routes
-
-    # Reconciliation Service
-    wget -qO- --post-data="name=reconciliation-service&url=http://reconciliation-service:3003" $KONG/services
-    wget -qO- --post-data="name=reconciliation-routes&paths[]=/api/v1/reconciliation&strip_path=false" $KONG/services/reconciliation-service/routes
-
-    # Notification Service
-    wget -qO- --post-data="name=notification-service&url=http://notification-service:3004" $KONG/services
-    wget -qO- --post-data="name=notification-routes&paths[]=/api/v1/notifications&strip_path=false" $KONG/services/notification-service/routes
-
-    # Rate Limiting
-    wget -qO- --post-data="name=rate-limiting&config.minute=100&config.policy=local" $KONG/plugins
-
-    echo "Kong setup complete."
-
----
-# ── Kong Deployment (Postgres) ──
+# ── Kong Deployment ──
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -93,13 +50,6 @@ spec:
       labels:
         app: kong
     spec:
-      initContainers:
-        - name: kong-setup
-          image: kong:3.6
-          command: ["/bin/sh", "/etc/kong-config/setup-kong.sh"]
-          volumeMounts:
-            - name: kong-config-volume
-              mountPath: /etc/kong-config
       containers:
         - name: kong
           image: kong:3.6
@@ -143,21 +93,16 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
           readinessProbe:
-            httpGet:
-              path: /status
-              port: 8001
+            tcpSocket:
+              port: 8000
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /status
-              port: 8001
+            tcpSocket:
+              port: 8000
             initialDelaySeconds: 20
             periodSeconds: 15
-      volumes:
-        - name: kong-config-volume
-          configMap:
-            name: kong-config
+
 ---
 apiVersion: v1
 kind: Service
@@ -183,3 +128,56 @@ spec:
       name: admin
   selector:
     app: kong
+
+---
+# ── Kong Route Setup Job (runs after Kong is ready) ──
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kong-setup-routes
+  namespace: tellersystem-uat
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: kong-setup
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Kong Admin API..."
+              until curl -sf http://kong:8001/status > /dev/null 2>&1; do sleep 5; done
+              echo "Kong is ready. Setting up routes..."
+
+              KONG=http://kong:8001
+
+              # Auth Service
+              curl -sf -X POST $KONG/services -d name=auth-service -d url=http://auth-service:3005
+              curl -sf -X POST $KONG/services/auth-service/routes -d name=auth-routes -d "paths[]=/api/v1/auth" -d strip_path=false
+
+              # Transfer Service
+              curl -sf -X POST $KONG/services -d name=transfer-service -d url=http://transfer-service:3001
+              curl -sf -X POST $KONG/services/transfer-service/routes -d name=transfer-routes -d "paths[]=/api/v1/transfers" -d strip_path=false
+
+              # Transaction Service
+              curl -sf -X POST $KONG/services -d name=transaction-service -d url=http://transaction-service:3002
+              curl -sf -X POST $KONG/services/transaction-service/routes -d name=transaction-routes -d "paths[]=/api/v1/transactions" -d strip_path=false
+              curl -sf -X POST $KONG/services/transaction-service/routes -d name=balance-routes -d "paths[]=/api/v1/balance" -d strip_path=false
+              curl -sf -X POST $KONG/services/transaction-service/routes -d name=account-routes -d "paths[]=/api/v1/accounts" -d strip_path=false
+
+              # Reconciliation Service
+              curl -sf -X POST $KONG/services -d name=reconciliation-service -d url=http://reconciliation-service:3003
+              curl -sf -X POST $KONG/services/reconciliation-service/routes -d name=reconciliation-routes -d "paths[]=/api/v1/reconciliation" -d strip_path=false
+
+              # Notification Service
+              curl -sf -X POST $KONG/services -d name=notification-service -d url=http://notification-service:3004
+              curl -sf -X POST $KONG/services/notification-service/routes -d name=notification-routes -d "paths[]=/api/v1/notifications" -d strip_path=false
+
+              # Rate Limiting
+              curl -sf -X POST $KONG/plugins -d name=rate-limiting -d "config.minute=100" -d "config.policy=local"
+
+              echo ""
+              echo "Kong setup complete!"
