@@ -203,6 +203,16 @@ data:
             type: container
             paths:
               - /var/log/containers/*-${data.kubernetes.container.id}.log
+    filebeat.inputs:
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path:
+                    logs_path: "/var/log/containers/"
     processors:
       - add_kubernetes_metadata:
           host: ${NODE_NAME}
@@ -392,8 +402,6 @@ spec:
               mountPath: /etc/grafana/provisioning/dashboards
             - name: dashboards
               mountPath: /var/lib/grafana/dashboards
-            - name: data
-              mountPath: /var/lib/grafana
           resources:
             requests:
               cpu: "100m"
@@ -411,8 +419,6 @@ spec:
         - name: dashboards
           configMap:
             name: grafana-dashboards
-        - name: data
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -450,12 +456,6 @@ spec:
       labels:
         app: elasticsearch
     spec:
-      initContainers:
-        - name: sysctl
-          image: busybox
-          command: ["sysctl", "-w", "vm.max_map_count=262144"]
-          securityContext:
-            privileged: true
       containers:
         - name: elasticsearch
           image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
@@ -469,6 +469,8 @@ spec:
               value: "false"
             - name: ES_JAVA_OPTS
               value: "-Xms512m -Xmx512m"
+            - name: node.store.allow_mmap
+              value: "false"
           volumeMounts:
             - name: data
               mountPath: /usr/share/elasticsearch/data
@@ -679,9 +681,6 @@ spec:
             - name: varlog
               mountPath: /var/log
               readOnly: true
-            - name: varlibdockercontainers
-              mountPath: /var/lib/docker/containers
-              readOnly: true
           resources:
             requests:
               cpu: "50m"
@@ -696,9 +695,6 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
-        - name: varlibdockercontainers
-          hostPath:
-            path: /var/lib/docker/containers
 
 ---
 # Filebeat ServiceAccount + RBAC
