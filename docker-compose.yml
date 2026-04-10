@@ -339,7 +339,7 @@ services:
       GF_SERVER_DOMAIN: "grafana.teller.tvdoing.com"
       GF_SERVER_SERVE_FROM_SUB_PATH: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Editor"
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
