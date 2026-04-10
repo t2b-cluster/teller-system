@@ -25,32 +25,22 @@ data:
         metrics_path: /api/v1/metrics
         static_configs:
           - targets: ['auth-service:3005']
-            labels:
-              service: auth-service
       - job_name: transfer-service
         metrics_path: /api/v1/metrics
         static_configs:
           - targets: ['transfer-service:3001']
-            labels:
-              service: transfer-service
       - job_name: transaction-service
         metrics_path: /api/v1/metrics
         static_configs:
           - targets: ['transaction-service:3002']
-            labels:
-              service: transaction-service
       - job_name: reconciliation-service
         metrics_path: /api/v1/metrics
         static_configs:
           - targets: ['reconciliation-service:3003']
-            labels:
-              service: reconciliation-service
       - job_name: notification-service
         metrics_path: /api/v1/metrics
         static_configs:
           - targets: ['notification-service:3004']
-            labels:
-              service: notification-service
       - job_name: redis
         static_configs:
           - targets: ['redis-exporter:9121']
