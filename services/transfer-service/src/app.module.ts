@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { TransferModule } from './transfer/transfer.module';
 import { HealthModule } from './health/health.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { Account } from './entities/account.entity';
 import { Transaction } from './entities/transaction.entity';
 import { OutboxMessage } from './entities/outbox-message.entity';
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
+    MetricsModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
       host: process.env.DB_HOST || 'localhost',

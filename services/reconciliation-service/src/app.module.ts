@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OutboxModule } from './outbox/outbox.module';
 import { ReconcileModule } from './reconcile/reconcile.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { OutboxMessage } from './entities/outbox-message.entity';
 import { Transaction } from './entities/transaction.entity';
 import { ReconciliationLog } from './entities/reconciliation-log.entity';
@@ -11,6 +12,7 @@ import { Account } from './entities/account.entity';
 
 @Module({
   imports: [
+    MetricsModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mssql',

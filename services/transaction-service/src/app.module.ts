@@ -4,12 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransactionModule } from './transaction/transaction.module';
 import { BalanceModule } from './balance/balance.module';
 import { AccountModule } from './account/account.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { Transaction } from './entities/transaction.entity';
 import { Account } from './entities/account.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
+    MetricsModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
       host: process.env.DB_HOST || 'localhost',

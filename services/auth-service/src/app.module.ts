@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { User } from './entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 
 @Module({
   imports: [
+    MetricsModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
       host: process.env.DB_HOST || 'localhost',
