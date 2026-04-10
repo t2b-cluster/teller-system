@@ -6,26 +6,8 @@
   "timezone": "browser",
   "refresh": "30s",
   "schemaVersion": 39,
+  "version": 2,
   "time": { "from": "now-1h", "to": "now" },
-  "templating": {
-    "list": [
-      {
-        "name": "service",
-        "type": "custom",
-        "current": { "text": "All", "value": "$__all" },
-        "options": [
-          { "text": "All", "value": "$__all", "selected": true },
-          { "text": "auth-service", "value": "auth-service" },
-          { "text": "transfer-service", "value": "transfer-service" },
-          { "text": "transaction-service", "value": "transaction-service" },
-          { "text": "reconciliation-service", "value": "reconciliation-service" },
-          { "text": "notification-service", "value": "notification-service" }
-        ],
-        "includeAll": true,
-        "multi": true
-      }
-    ]
-  },
   "panels": [
     {
       "id": 1,
@@ -34,7 +16,7 @@
       "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "up{job=~\"$service\"}", "legendFormat": "{{job}}" }
+        { "expr": "up{job=~\"auth-service|transfer-service|transaction-service|reconciliation-service|notification-service\"}", "legendFormat": "{{job}}" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -52,7 +34,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum(rate(http_requests_total{job=~\"$service\"}[5m])) by (job)", "legendFormat": "{{job}}" }
+        { "expr": "sum(rate(http_requests_total[5m])) by (job)", "legendFormat": "{{job}}" }
       ],
       "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "fillOpacity": 15 } }, "overrides": [] }
     },
@@ -63,8 +45,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le, job)) * 1000", "legendFormat": "P95 {{job}}" },
-        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le, job)) * 1000", "legendFormat": "P50 {{job}}" }
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) * 1000", "legendFormat": "P95 {{job}}" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) * 1000", "legendFormat": "P50 {{job}}" }
       ],
       "fieldConfig": { "defaults": { "unit": "ms", "custom": { "fillOpacity": 10 } }, "overrides": [] }
     },
@@ -75,7 +57,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum(rate(http_requests_total{status=~\"5..\",job=~\"$service\"}[5m])) by (job) / sum(rate(http_requests_total{job=~\"$service\"}[5m])) by (job) * 100", "legendFormat": "{{job}}" }
+        { "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (job) / sum(rate(http_requests_total[5m])) by (job) * 100", "legendFormat": "{{job}}" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -92,7 +74,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum(increase(http_requests_total{job=~\"$service\"}[1h])) by (status)", "legendFormat": "HTTP {{status}}" }
+        { "expr": "sum(increase(http_requests_total[1h])) by (status)", "legendFormat": "HTTP {{status}}" }
       ]
     },
     {
@@ -102,7 +84,7 @@
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum(rate(http_requests_total{job=~\"$service\"}[5m])) by (job, method, path)", "legendFormat": "", "format": "table", "instant": true }
+        { "expr": "sum(rate(http_requests_total[5m])) by (job, method, path)", "legendFormat": "", "format": "table", "instant": true }
       ]
     },
     {
@@ -123,7 +105,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "teller_db_pool_active{job=~\"$service\"}", "legendFormat": "{{job}}" }
+        { "expr": "teller_db_pool_active", "legendFormat": "{{job}}" }
       ],
       "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20 } }, "overrides": [] }
     }
