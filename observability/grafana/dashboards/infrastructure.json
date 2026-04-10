@@ -1,7 +1,7 @@
 {
   "id": null,
   "uid": "infra-overview",
-  "title": "Infrastructure Overview - CPU / RAM / Cluster",
+  "title": "Infrastructure Overview - Cluster & Services",
   "tags": ["infrastructure", "teller"],
   "timezone": "browser",
   "refresh": "30s",
@@ -10,161 +10,123 @@
   "panels": [
     {
       "id": 1,
-      "title": "CPU Usage (%)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "title": "All Services Status",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "{{instance}}"
-        }
+        { "expr": "up", "legendFormat": "{{job}}" }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "custom": { "fillOpacity": 20, "lineWidth": 2 },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 60 },
-              { "color": "red", "value": 80 }
-            ]
-          }
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ]
         },
         "overrides": []
       }
     },
     {
       "id": 2,
-      "title": "Memory Usage (%)",
+      "title": "Process CPU Usage (per service)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
-          "legendFormat": "{{instance}}"
-        }
+        { "expr": "rate(process_cpu_seconds_total[5m]) * 100", "legendFormat": "{{job}}" }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "custom": { "fillOpacity": 20, "lineWidth": 2 },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 85 }
-            ]
-          }
-        },
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "unit": "percent", "custom": { "fillOpacity": 20, "lineWidth": 2 } }, "overrides": [] }
     },
     {
       "id": 3,
-      "title": "Container CPU Usage",
+      "title": "Process Memory RSS (per service)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "rate(container_cpu_usage_seconds_total{name=~\".+\"}[5m]) * 100",
-          "legendFormat": "{{name}}"
-        }
+        { "expr": "process_resident_memory_bytes / 1024 / 1024", "legendFormat": "{{job}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "percent", "custom": { "fillOpacity": 10 } },
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "unit": "decmbytes", "custom": { "fillOpacity": 20, "lineWidth": 2 } }, "overrides": [] }
     },
     {
       "id": 4,
-      "title": "Container Memory Usage (MB)",
+      "title": "Process Heap Used (Node.js)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "container_memory_usage_bytes{name=~\".+\"} / 1024 / 1024",
-          "legendFormat": "{{name}}"
-        }
+        { "expr": "nodejs_heap_size_used_bytes / 1024 / 1024", "legendFormat": "{{job}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "decmbytes", "custom": { "fillOpacity": 10 } },
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "unit": "decmbytes", "custom": { "fillOpacity": 15 } }, "overrides": [] }
     },
     {
       "id": 5,
-      "title": "Disk Usage (%)",
-      "type": "gauge",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "title": "Node.js Event Loop Lag (seconds)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})) * 100",
-          "legendFormat": "Disk"
-        }
+        { "expr": "nodejs_eventloop_lag_seconds", "legendFormat": "{{job}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "fillOpacity": 10 } }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "title": "Active Handles (Node.js)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "nodejs_active_handles_total", "legendFormat": "{{job}}" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 } }, "overrides": [] }
+    },
+    {
+      "id": 7,
+      "title": "Redis Memory Used",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_memory_used_bytes / 1024 / 1024", "legendFormat": "Redis Memory (MB)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "decmbytes", "custom": { "fillOpacity": 20 } }, "overrides": [] }
+    },
+    {
+      "id": 8,
+      "title": "Redis Connected Clients",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_connected_clients", "legendFormat": "Clients" }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] }
+    },
+    {
+      "id": 9,
+      "title": "Redis Commands/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(redis_commands_processed_total[5m])", "legendFormat": "cmd/s" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 15 } }, "overrides": [] }
+    },
+    {
+      "id": 10,
+      "title": "Redis Keyspace Hit Rate (%)",
+      "type": "gauge",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total) * 100", "legendFormat": "Hit Rate" }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percent", "min": 0, "max": 100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 90 }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 6,
-      "title": "Network I/O (Bytes/sec)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "rate(node_network_receive_bytes_total{device!=\"lo\"}[5m])",
-          "legendFormat": "RX {{device}}"
-        },
-        {
-          "expr": "rate(node_network_transmit_bytes_total{device!=\"lo\"}[5m])",
-          "legendFormat": "TX {{device}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": { "unit": "Bps", "custom": { "fillOpacity": 15 } },
-        "overrides": []
-      }
-    },
-    {
-      "id": 7,
-      "title": "Running Containers",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        {
-          "expr": "count(container_last_seen{name=~\".+\"})",
-          "legendFormat": "Containers"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "blue" }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 50 }, { "color": "green", "value": 80 }] }
         },
         "overrides": []
       }
