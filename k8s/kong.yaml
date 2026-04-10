@@ -112,8 +112,12 @@ metadata:
   labels:
     app: kong
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: proxy-http
     - port: 8000
       targetPort: 8000
       protocol: TCP
