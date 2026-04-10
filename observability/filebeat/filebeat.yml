@@ -1,0 +1,56 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+          overwrite_keys: true
+          add_error_key: true
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      hints.default_config:
+        type: container
+        paths:
+          - /var/lib/docker/containers/${data.docker.container.id}/*.log
+
+processors:
+  - add_cloud_metadata: ~
+  - add_host_metadata: ~
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  indices:
+    - index: "teller-auth-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "auth-service"
+    - index: "teller-transfer-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "transfer-service"
+    - index: "teller-transaction-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "transaction-service"
+    - index: "teller-reconciliation-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "reconciliation-service"
+    - index: "teller-notification-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "notification-service"
+    - index: "teller-system-%{+yyyy.MM.dd}"
+
+setup.kibana:
+  host: "kibana:5601"
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644

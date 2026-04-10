@@ -75,6 +75,10 @@ spec:
               value: "production"
             - name: PORT
               value: "3005"
+            - name: SERVICE_NAME
+              value: "auth-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
           envFrom:
             - configMapRef:
                 name: teller-config
@@ -176,6 +180,10 @@ spec:
               value: "3001"
             - name: QUEUE_NAME
               value: "transfer-queue"
+            - name: SERVICE_NAME
+              value: "transfer-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
           envFrom:
             - configMapRef:
                 name: teller-config
@@ -275,6 +283,10 @@ spec:
               value: "production"
             - name: PORT
               value: "3002"
+            - name: SERVICE_NAME
+              value: "transaction-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
           envFrom:
             - configMapRef:
                 name: teller-config
@@ -376,6 +388,10 @@ spec:
               value: "3003"
             - name: QUEUE_NAME
               value: "reconciliation-queue"
+            - name: SERVICE_NAME
+              value: "reconciliation-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
           envFrom:
             - configMapRef:
                 name: teller-config
@@ -477,6 +493,10 @@ spec:
               value: "3004"
             - name: QUEUE_NAME
               value: "notification-queue"
+            - name: SERVICE_NAME
+              value: "notification-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
           envFrom:
             - configMapRef:
                 name: teller-config

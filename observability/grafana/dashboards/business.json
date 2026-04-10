@@ -1,0 +1,134 @@
+{
+  "id": null,
+  "uid": "business-metrics",
+  "title": "Business Metrics - Daily Operations",
+  "tags": ["business", "teller"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "✅ Transfers Completed (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transfer_total{status=\"completed\"}[24h]))", "legendFormat": "Completed" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] }
+    },
+    {
+      "id": 2, "title": "⏳ Transfers Pending (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transfer_total{status=\"pending\"}[24h]))", "legendFormat": "Pending" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "yellow" } }, "overrides": [] }
+    },
+    {
+      "id": 3, "title": "❌ Transfers Failed (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transfer_total{status=\"failed\"}[24h]))", "legendFormat": "Failed" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] }
+    },
+    {
+      "id": 4, "title": "Transfer Status Over Time (Hourly)", "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(increase(teller_transfer_total{status=\"completed\"}[1h]))", "legendFormat": "Completed" },
+        { "expr": "sum(increase(teller_transfer_total{status=\"pending\"}[1h]))", "legendFormat": "Pending" },
+        { "expr": "sum(increase(teller_transfer_total{status=\"failed\"}[1h]))", "legendFormat": "Failed" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 20 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Completed" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Pending" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Failed" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      }
+    },
+    {
+      "id": 5, "title": "🏦 New Accounts (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_account_created_total[24h]))", "legendFormat": "Accounts" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] }
+    },
+    {
+      "id": 6, "title": "Account Openings Over Time", "type": "timeseries",
+      "gridPos": { "h": 6, "w": 16, "x": 8, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_account_created_total[1h]))", "legendFormat": "New Accounts" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" }, "custom": { "fillOpacity": 25 } }, "overrides": [] }
+    },
+    {
+      "id": 7, "title": "📊 Total Transactions (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transactions_total[24h]))", "legendFormat": "Total" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "purple" } }, "overrides": [] }
+    },
+    {
+      "id": 8, "title": "Transactions Completed (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transactions_total{status=\"completed\"}[24h]))", "legendFormat": "Completed" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] }
+    },
+    {
+      "id": 9, "title": "Transactions Failed (24h)", "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transactions_total{status=\"failed\"}[24h]))", "legendFormat": "Failed" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] }
+    },
+    {
+      "id": 10, "title": "Transaction Volume (Hourly Bar Chart)", "type": "barchart",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(increase(teller_transactions_total{status=\"completed\"}[1h]))", "legendFormat": "Completed" },
+        { "expr": "sum(increase(teller_transactions_total{status=\"failed\"}[1h]))", "legendFormat": "Failed" }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Completed" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Failed" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      }
+    },
+    {
+      "id": 11, "title": "Transfer Amount Volume (THB/hour)", "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transfer_amount_total[1h]))", "legendFormat": "THB Volume" }],
+      "fieldConfig": { "defaults": { "unit": "currencyTHB", "custom": { "fillOpacity": 25 } }, "overrides": [] }
+    },
+    {
+      "id": 12, "title": "Average Transfer Amount (24h)", "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(teller_transfer_amount_total[24h])) / sum(increase(teller_transfer_total[24h]))", "legendFormat": "Avg" }],
+      "fieldConfig": { "defaults": { "unit": "currencyTHB", "color": { "mode": "fixed", "fixedColor": "orange" } }, "overrides": [] }
+    },
+    {
+      "id": 13, "title": "Auth: Login Success vs Failure (24h)", "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(increase(teller_auth_login_total{status=\"success\"}[24h]))", "legendFormat": "Success" },
+        { "expr": "sum(increase(teller_auth_login_total{status=\"failed\"}[24h]))", "legendFormat": "Failed" }
+      ]
+    },
+    {
+      "id": 14, "title": "Reconciliation Results (24h)", "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(increase(teller_reconciliation_total{result=\"matched\"}[24h]))", "legendFormat": "Matched" },
+        { "expr": "sum(increase(teller_reconciliation_total{result=\"mismatched\"}[24h]))", "legendFormat": "Mismatched" }
+      ]
+    }
+  ]
+}

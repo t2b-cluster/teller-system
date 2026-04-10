@@ -1,7 +1,7 @@
 // =============================================================================
 // Teller System — Monorepo CI/CD Pipeline (NestJS + React)
 // Push: Harbor (scan/storage) + Artifact Registry (GKE pull)
-// Deploy: GKE Cluster
+// Deploy: GKE Cluster + Observability Stack
 // =============================================================================
 
 pipeline {
@@ -84,6 +84,9 @@ pipeline {
           env.BUILD_NOTIFICATION    = (buildAll || changes.contains('services/notification-service/') || changes.contains('shared/')).toString()
           env.BUILD_FRONTEND        = (buildAll || changes.contains('services/frontend/')).toString()
 
+          // Detect observability changes
+          env.OBSERVABILITY_CHANGED = (buildAll || changes.contains('observability/') || changes.contains('k8s/observability')).toString()
+
           def list = []
           if (env.BUILD_AUTH.toBoolean())           list << 'auth-service'
           if (env.BUILD_TRANSFER.toBoolean())       list << 'transfer-service'
@@ -96,6 +99,7 @@ pipeline {
           env.ANY_SERVICE_CHANGED = (list.size() > 0).toString()
 
           echo "ANY_SERVICE_CHANGED = ${env.ANY_SERVICE_CHANGED}"
+          echo "OBSERVABILITY_CHANGED = ${env.OBSERVABILITY_CHANGED}"
           echo "Services to build: ${env.SERVICES_TO_BUILD}"
         }
       }
@@ -314,6 +318,90 @@ pipeline {
       }
     }
 
+    stage('Deploy Observability Stack') {
+      when {
+        expression { env.ANY_SERVICE_CHANGED.toBoolean() || env.OBSERVABILITY_CHANGED.toBoolean() }
+      }
+      steps {
+        script {
+          sh """
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+            gcloud container clusters get-credentials ${GKE_CLUSTER} \
+              --region=${GKE_REGION} \
+              --project=${GKE_PROJECT} \
+              --internal-ip
+
+            echo "=== Deploying Grafana Dashboards as ConfigMap ==="
+            kubectl create configmap grafana-dashboards \
+              --from-file=observability/grafana/dashboards/ \
+              -n ${K8S_NAMESPACE} \
+              --dry-run=client -o yaml | kubectl apply -f -
+
+            echo "=== Deploying Observability Stack ==="
+            kubectl apply -f k8s/observability.yaml -n ${K8S_NAMESPACE}
+            kubectl apply -f k8s/observability-ingress.yaml -n ${K8S_NAMESPACE}
+
+            echo "=== Waiting for Observability Services ==="
+            kubectl rollout status deployment/prometheus -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/grafana -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/elasticsearch -n ${K8S_NAMESPACE} --timeout=300s || true
+            kubectl rollout status deployment/jaeger -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/otel-collector -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/kibana -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/logstash -n ${K8S_NAMESPACE} --timeout=180s || true
+            kubectl rollout status deployment/redis-exporter -n ${K8S_NAMESPACE} --timeout=120s || true
+
+            echo "=== Observability Stack Deployed ==="
+            kubectl get pods -n ${K8S_NAMESPACE} -l 'app in (prometheus,grafana,elasticsearch,kibana,jaeger,otel-collector,logstash,filebeat,redis-exporter)'
+          """
+        }
+      }
+    }
+
+    stage('Verify Observability') {
+      when {
+        expression { env.ANY_SERVICE_CHANGED.toBoolean() || env.OBSERVABILITY_CHANGED.toBoolean() }
+      }
+      steps {
+        script {
+          sh """
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+            gcloud container clusters get-credentials ${GKE_CLUSTER} \
+              --region=${GKE_REGION} \
+              --project=${GKE_PROJECT} \
+              --internal-ip
+
+            echo "=== Checking Prometheus Targets ==="
+            PROM_POD=\$(kubectl get pod -n ${K8S_NAMESPACE} -l app=prometheus -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo '')
+            if [ -n "\$PROM_POD" ]; then
+              kubectl exec \$PROM_POD -n ${K8S_NAMESPACE} -- wget -qO- http://localhost:9090/api/v1/targets 2>/dev/null | head -c 500 || true
+            fi
+
+            echo ""
+            echo "=== Checking Grafana Health ==="
+            GRAF_POD=\$(kubectl get pod -n ${K8S_NAMESPACE} -l app=grafana -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo '')
+            if [ -n "\$GRAF_POD" ]; then
+              kubectl exec \$GRAF_POD -n ${K8S_NAMESPACE} -- wget -qO- http://localhost:3000/api/health 2>/dev/null || true
+            fi
+
+            echo ""
+            echo "=== Checking Elasticsearch Health ==="
+            ES_POD=\$(kubectl get pod -n ${K8S_NAMESPACE} -l app=elasticsearch -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo '')
+            if [ -n "\$ES_POD" ]; then
+              kubectl exec \$ES_POD -n ${K8S_NAMESPACE} -- curl -sf http://localhost:9200/_cluster/health 2>/dev/null || true
+            fi
+
+            echo ""
+            echo "=== Observability Endpoints ==="
+            echo "Grafana:     https://grafana.teller.tvdoing.com"
+            echo "Jaeger:      https://jaeger.teller.tvdoing.com"
+            echo "Kibana:      https://kibana.teller.tvdoing.com"
+            echo "Prometheus:  https://prometheus.teller.tvdoing.com"
+          """
+        }
+      }
+    }
+
     stage('OWASP ZAP Scan') {
       when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
       steps {
@@ -357,6 +445,11 @@ pipeline {
         Harbor:    ${HARBOR_REGISTRY}/${HARBOR_PROJECT}
         AR:        ${AR_REGISTRY}
         Deployed:  ${K8S_NAMESPACE}
+        ── Observability ──
+        Grafana:     https://grafana.teller.tvdoing.com
+        Jaeger:      https://jaeger.teller.tvdoing.com
+        Kibana:      https://kibana.teller.tvdoing.com
+        Prometheus:  https://prometheus.teller.tvdoing.com
       """
     }
     failure {

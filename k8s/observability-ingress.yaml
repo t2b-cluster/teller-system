@@ -1,0 +1,60 @@
+# =============================================================================
+# Observability Ingress — Domain-based routing
+# grafana.teller.tvdoing.com  → Grafana
+# jaeger.teller.tvdoing.com   → Jaeger
+# kibana.teller.tvdoing.com   → Kibana
+# prometheus.teller.tvdoing.com → Prometheus
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: observability-ingress
+  namespace: tellersystem-uat
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "observability-ip"
+spec:
+  rules:
+    - host: grafana.teller.tvdoing.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+
+    - host: jaeger.teller.tvdoing.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaeger
+                port:
+                  number: 16686
+
+    - host: kibana.teller.tvdoing.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana
+                port:
+                  number: 5601
+
+    - host: prometheus.teller.tvdoing.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus
+                port:
+                  number: 9090

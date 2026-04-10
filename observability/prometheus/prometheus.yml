@@ -1,0 +1,69 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # ── Prometheus self-monitoring ──
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ── Node Exporter (Host metrics: CPU, RAM, Disk) ──
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # ── cAdvisor (Container metrics) ──
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # ── Application Services ──
+  - job_name: 'auth-service'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['auth-service:3005']
+        labels:
+          service: 'auth-service'
+
+  - job_name: 'transfer-service'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['transfer-service:3001']
+        labels:
+          service: 'transfer-service'
+
+  - job_name: 'transaction-service'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['transaction-service:3002']
+        labels:
+          service: 'transaction-service'
+
+  - job_name: 'reconciliation-service'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['reconciliation-service:3003']
+        labels:
+          service: 'reconciliation-service'
+
+  - job_name: 'notification-service'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['notification-service:3004']
+        labels:
+          service: 'notification-service'
+
+  # ── Redis Exporter ──
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # ── Kong Gateway ──
+  - job_name: 'kong'
+    static_configs:
+      - targets: ['kong:8001']
+    metrics_path: '/metrics'
