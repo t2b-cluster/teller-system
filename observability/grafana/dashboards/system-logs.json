@@ -6,112 +6,71 @@
   "timezone": "browser",
   "refresh": "30s",
   "schemaVersion": 39,
+  "version": 3,
   "time": { "from": "now-1h", "to": "now" },
-  "templating": {
-    "list": [
-      {
-        "name": "service",
-        "type": "custom",
-        "current": { "text": "All", "value": "$__all" },
-        "options": [
-          { "text": "All", "value": "$__all", "selected": true },
-          { "text": "auth-service", "value": "auth-service" },
-          { "text": "transfer-service", "value": "transfer-service" },
-          { "text": "transaction-service", "value": "transaction-service" },
-          { "text": "reconciliation-service", "value": "reconciliation-service" },
-          { "text": "notification-service", "value": "notification-service" }
-        ],
-        "includeAll": true,
-        "multi": true
-      },
-      {
-        "name": "level",
-        "type": "custom",
-        "current": { "text": "All", "value": "$__all" },
-        "options": [
-          { "text": "All", "value": "$__all", "selected": true },
-          { "text": "error", "value": "error" },
-          { "text": "warn", "value": "warn" },
-          { "text": "info", "value": "info" },
-          { "text": "debug", "value": "debug" }
-        ],
-        "includeAll": true,
-        "multi": true
-      }
-    ]
-  },
   "panels": [
     {
       "id": 1,
-      "title": "Log Volume by Service",
+      "title": "Log Volume Over Time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [
         {
-          "query": "service_name:($service) AND log_level:($level)",
+          "query": "*",
           "metrics": [{ "type": "count", "id": "1" }],
           "bucketAggs": [
-            { "type": "terms", "field": "service_name.keyword", "id": "3", "settings": { "size": "10" } },
             { "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "auto" } }
           ]
         }
       ]
     },
     {
-      "id": 2, "title": "🔴 Errors", "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
-      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "log_level:error", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
-      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] }
-    },
-    {
-      "id": 3, "title": "🟡 Warnings", "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
-      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "log_level:warn", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
-      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "yellow" } }, "overrides": [] }
-    },
-    {
-      "id": 4, "title": "🟢 Info", "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 8 },
-      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "log_level:info", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
-      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] }
-    },
-    {
-      "id": 5, "title": "🔵 Total", "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 8 },
+      "id": 2, "title": "Total Logs", "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 8 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [{ "query": "*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] }
     },
     {
-      "id": 6,
-      "title": "Recent Logs Stream",
+      "id": 3, "title": "Error Logs", "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 8 },
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
+      "targets": [{ "query": "json.log\\.level:error OR message:*ERROR*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] }
+    },
+    {
+      "id": 4, "title": "Warning Logs", "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 8 },
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
+      "targets": [{ "query": "json.log\\.level:warn OR message:*WARN*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "yellow" } }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "title": "Recent Logs",
       "type": "table",
       "gridPos": { "h": 14, "w": 24, "x": 0, "y": 12 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [
         {
-          "query": "service_name:($service) AND log_level:($level)",
-          "metrics": [{ "type": "logs", "id": "1" }],
+          "query": "*",
+          "metrics": [{ "type": "logs", "id": "1", "settings": { "limit": "100" } }],
           "bucketAggs": []
         }
       ]
     },
     {
-      "id": 7,
-      "title": "Error Rate by Service (per minute)",
+      "id": 6,
+      "title": "Error Logs Over Time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [
         {
-          "query": "log_level:error AND service_name:($service)",
+          "query": "json.log\\.level:error OR message:*ERROR*",
           "metrics": [{ "type": "count", "id": "1" }],
           "bucketAggs": [
-            { "type": "terms", "field": "service_name.keyword", "id": "3", "settings": { "size": "10" } },
             { "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1m" } }
           ]
         }
