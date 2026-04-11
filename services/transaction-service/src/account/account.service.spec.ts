@@ -3,6 +3,7 @@ import { ConflictException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AccountService } from './account.service';
 import { Account } from '../entities/account.entity';
+import { MetricsService } from '../metrics/metrics.service';
 
 describe('AccountService', () => {
   let service: AccountService;
@@ -14,6 +15,7 @@ describe('AccountService', () => {
       providers: [
         AccountService,
         { provide: getRepositoryToken(Account), useValue: repo },
+        { provide: MetricsService, useValue: { accountCreatedTotal: { inc: jest.fn() } } },
       ],
     }).compile();
     service = module.get<AccountService>(AccountService);

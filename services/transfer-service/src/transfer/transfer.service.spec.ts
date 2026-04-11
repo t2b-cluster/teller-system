@@ -9,6 +9,7 @@ import { Account } from '../entities/account.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { IdempotencyKey } from '../entities/idempotency-key.entity';
 import { CreateTransferDto } from './transfer.dto';
+import { MetricsService } from '../metrics/metrics.service';
 
 describe('TransferService', () => {
   let service: TransferService;
@@ -86,6 +87,7 @@ describe('TransferService', () => {
         { provide: getRepositoryToken(IdempotencyKey), useValue: idemRepo },
         { provide: RedisLockService, useValue: lockService },
         { provide: TransferProducer, useValue: transferProducer },
+        { provide: MetricsService, useValue: { transferTotal: { inc: jest.fn() }, transferAmountTotal: { inc: jest.fn() }, transactionsTotal: { inc: jest.fn() } } },
       ],
     }).compile();
 

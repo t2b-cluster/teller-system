@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { TokenService } from './token.service';
 import { User } from '../entities/user.entity';
+import { MetricsService } from '../metrics/metrics.service';
 
 jest.mock('bcrypt');
 
@@ -46,6 +47,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: TokenService, useValue: tokenService },
+        { provide: MetricsService, useValue: { authLoginTotal: { inc: jest.fn() } } },
       ],
     }).compile();
 
