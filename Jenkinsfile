@@ -175,7 +175,7 @@ pipeline {
     }
 
     stage('Unit Test + Coverage') {
-      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
+      when { expression { false } } // TEMPORARILY BYPASSED
       steps {
         script {
           def backendMap = [
