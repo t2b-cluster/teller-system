@@ -6,6 +6,7 @@
   "timezone": "browser",
   "refresh": "1m",
   "schemaVersion": 39,
+  "version": 5,
   "time": { "from": "now-24h", "to": "now" },
   "panels": [
     {

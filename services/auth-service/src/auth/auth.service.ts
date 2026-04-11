@@ -5,12 +5,14 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { TokenService } from './token.service';
 import { LoginDto } from './auth.dto';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
+    private readonly metrics: MetricsService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -19,11 +21,13 @@ export class AuthService {
     });
 
     if (!user) {
+      this.metrics.authLoginTotal.inc({ status: 'failed' });
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isValid) {
+      this.metrics.authLoginTotal.inc({ status: 'failed' });
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -38,6 +42,8 @@ export class AuthService {
 
     // Update last login
     await this.userRepo.update(user.id, { lastLogin: new Date() });
+
+    this.metrics.authLoginTotal.inc({ status: 'success' });
 
     return {
       accessToken,

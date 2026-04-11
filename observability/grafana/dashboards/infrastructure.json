@@ -6,6 +6,7 @@
   "timezone": "browser",
   "refresh": "30s",
   "schemaVersion": 39,
+  "version": 5,
   "time": { "from": "now-1h", "to": "now" },
   "panels": [
     {
@@ -50,7 +51,7 @@
     },
     {
       "id": 4,
-      "title": "Process Heap Used (Node.js)",
+      "title": "Node.js Heap Used (MB)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -71,21 +72,17 @@
       "fieldConfig": { "defaults": { "unit": "s", "custom": { "fillOpacity": 10 } }, "overrides": [] }
     },
     {
-      "id": 6,
-      "title": "Active Handles (Node.js)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        { "expr": "nodejs_active_handles_total", "legendFormat": "{{job}}" }
-      ],
-      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 } }, "overrides": [] }
+      "id": 10,
+      "title": "── Database Server (SQL Server via Redis Exporter) ──",
+      "type": "text",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 21 },
+      "options": { "mode": "markdown", "content": "### 🗄️ Database & Redis Server Metrics" }
     },
     {
-      "id": 7,
-      "title": "Redis Memory Used",
+      "id": 6,
+      "title": "Redis Memory Used (MB)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         { "expr": "redis_memory_used_bytes / 1024 / 1024", "legendFormat": "Redis Memory (MB)" }
@@ -93,10 +90,10 @@
       "fieldConfig": { "defaults": { "unit": "decmbytes", "custom": { "fillOpacity": 20 } }, "overrides": [] }
     },
     {
-      "id": 8,
+      "id": 7,
       "title": "Redis Connected Clients",
       "type": "stat",
-      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 29 },
+      "gridPos": { "h": 8, "w": 4, "x": 12, "y": 23 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         { "expr": "redis_connected_clients", "legendFormat": "Clients" }
@@ -104,10 +101,10 @@
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] }
     },
     {
-      "id": 9,
+      "id": 8,
       "title": "Redis Commands/sec",
       "type": "timeseries",
-      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 29 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 23 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         { "expr": "rate(redis_commands_processed_total[5m])", "legendFormat": "cmd/s" }
@@ -115,10 +112,10 @@
       "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 15 } }, "overrides": [] }
     },
     {
-      "id": 10,
+      "id": 11,
       "title": "Redis Keyspace Hit Rate (%)",
       "type": "gauge",
-      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 29 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 31 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         { "expr": "redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total) * 100", "legendFormat": "Hit Rate" }
@@ -130,6 +127,28 @@
         },
         "overrides": []
       }
+    },
+    {
+      "id": 12,
+      "title": "Redis Total Keys",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 31 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(redis_db_keys)", "legendFormat": "Total Keys" }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "purple" } }, "overrides": [] }
+    },
+    {
+      "id": 13,
+      "title": "Redis Uptime (hours)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 31 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_uptime_in_seconds / 3600", "legendFormat": "Uptime" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "h", "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] }
     }
   ]
 }

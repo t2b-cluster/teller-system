@@ -6,7 +6,7 @@
   "timezone": "browser",
   "refresh": "30s",
   "schemaVersion": 39,
-  "version": 3,
+  "version": 5,
   "time": { "from": "now-1h", "to": "now" },
   "panels": [
     {
@@ -26,31 +26,38 @@
       ]
     },
     {
-      "id": 2, "title": "Total Logs", "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 8 },
+      "id": 2, "title": "📊 Total Logs", "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 8 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
+      "targets": [{ "query": "*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [{ "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1h" } }] }],
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] }
     },
     {
-      "id": 3, "title": "Error Logs", "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 8 },
+      "id": 3, "title": "🔴 Error Logs", "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 8 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "json.log\\.level:error OR message:*ERROR*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
+      "targets": [{ "query": "message:*ERROR* OR message:*error*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [{ "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1h" } }] }],
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] }
     },
     {
-      "id": 4, "title": "Warning Logs", "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 8 },
+      "id": 4, "title": "🟡 Warning Logs", "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 8 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
-      "targets": [{ "query": "json.log\\.level:warn OR message:*WARN*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [] }],
+      "targets": [{ "query": "message:*WARN* OR message:*warn*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [{ "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1h" } }] }],
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "yellow" } }, "overrides": [] }
+    },
+    {
+      "id": 9, "title": "🟢 Access Logs", "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 8 },
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
+      "targets": [{ "query": "message:*GET* OR message:*POST* OR message:*PUT* OR message:*DELETE*", "metrics": [{ "type": "count", "id": "1" }], "bucketAggs": [{ "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1h" } }] }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] }
     },
     {
       "id": 5,
       "title": "Recent Logs",
       "type": "table",
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 12 },
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 13 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [
         {
@@ -64,11 +71,11 @@
       "id": 6,
       "title": "Error Logs Over Time",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 27 },
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch" },
       "targets": [
         {
-          "query": "json.log\\.level:error OR message:*ERROR*",
+          "query": "message:*ERROR* OR message:*error*",
           "metrics": [{ "type": "count", "id": "1" }],
           "bucketAggs": [
             { "type": "date_histogram", "field": "@timestamp", "id": "2", "settings": { "interval": "1m" } }

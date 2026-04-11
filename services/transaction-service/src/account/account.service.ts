@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from '../entities/account.entity';
 import { CreateAccountDto } from './account.dto';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectRepository(Account) private readonly accountRepo: Repository<Account>,
+    private readonly metrics: MetricsService,
   ) {}
 
   async create(dto: CreateAccountDto) {
@@ -27,6 +29,8 @@ export class AccountService {
     });
 
     const saved = await this.accountRepo.save(account);
+
+    this.metrics.accountCreatedTotal.inc();
 
     return {
       id: saved.id,

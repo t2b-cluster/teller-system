@@ -9,6 +9,7 @@ import { IdempotencyKey } from '../entities/idempotency-key.entity';
 import { RedisLockService } from '../infrastructure/redis-lock.service';
 import { TransferProducer } from './transfer.producer';
 import { CreateTransferDto } from './transfer.dto';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class TransferService {
@@ -19,6 +20,7 @@ export class TransferService {
     @InjectRepository(IdempotencyKey) private readonly idemRepo: Repository<IdempotencyKey>,
     private readonly lockService: RedisLockService,
     private readonly transferProducer: TransferProducer,
+    private readonly metrics: MetricsService,
   ) {}
 
   async executeTransfer(dto: CreateTransferDto, idempotencyKey: string) {
@@ -102,7 +104,16 @@ export class TransferService {
       // 5. Publish to message queue for async processing
       await this.transferProducer.publishTransferInitiated(result.transactionRef, dto);
 
+      // 6. Record business metrics
+      this.metrics.transferTotal.inc({ status: 'pending' });
+      this.metrics.transferAmountTotal.inc({ currency: dto.currency || 'THB' }, dto.amount);
+      this.metrics.transactionsTotal.inc({ status: 'pending', type: 'TRANSFER' });
+
       return result;
+    } catch (error) {
+      this.metrics.transferTotal.inc({ status: 'failed' });
+      this.metrics.transactionsTotal.inc({ status: 'failed', type: 'TRANSFER' });
+      throw error;
     } finally {
       await this.lockService.release(lock);
     }
