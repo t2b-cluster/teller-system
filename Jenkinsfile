@@ -33,6 +33,7 @@ pipeline {
     timestamps()
   }
 
+
   stages {
 
     stage('Checkout') {
@@ -175,7 +176,7 @@ pipeline {
     }
 
     stage('Unit Test + Coverage') {
-      when { expression { false } } // TEMPORARILY BYPASSED
+      when { expression { env.ANY_SERVICE_CHANGED.toBoolean() } }
       steps {
         script {
           def backendMap = [
