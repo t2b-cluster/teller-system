@@ -5,9 +5,4 @@ coverage/
 *.log
 .DS_Store
 
-docs.html
-deployment.html
-requirement.html
-testing.html
-101.html
-sourcecode.html
+docs/
