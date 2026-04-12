@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System — Software Development Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap');
+
+  :root {
+    --primary: #0f172a;
+    --accent: #3b82f6;
+    --accent-light: #60a5fa;
+    --accent-dark: #1d4ed8;
+    --surface: #f8fafc;
+    --surface-2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #06b6d4;
+    --purple: #8b5cf6;
+    --pink: #ec4899;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);
+    color: white;
+    padding: 80px 40px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-content { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+    color: rgba(255,255,255,0.85);
+  }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .hero h1 span { color: var(--accent-light); }
+  .hero-sub {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── TECH PILLS ── */
+  .tech-strip {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .pill-nest { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .pill-react { background: #ecfeff; color: #0891b2; border: 1px solid #a5f3fc; }
+  .pill-sql { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .pill-redis { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .pill-ocp { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .pill-jenkins { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
+
+  /* ── TOC ── */
+  .toc-wrap {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+  .toc {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 32px 36px;
+    box-shadow: var(--shadow);
+  }
+  .toc h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; }
+  .toc li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.15s;
+  }
+  .toc li a:hover { background: var(--surface-2); color: var(--accent); }
+  .toc li a::before {
+    content: "0" counter(toc);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── SECTION ── */
+  .section {
+    margin-top: 48px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 28px 36px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 22px; font-weight: 700; }
+  .section-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .section-body { padding: 32px 36px; }
+
+  .sn-blue  { background: #eff6ff; color: #2563eb; }
+  .sn-green { background: #f0fdf4; color: #16a34a; }
+  .sn-purple { background: #f5f3ff; color: #7c3aed; }
+  .sn-orange { background: #fff7ed; color: #ea580c; }
+  .sn-cyan   { background: #ecfeff; color: #0891b2; }
+
+  /* ── SUB HEADINGS ── */
+  .sub-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--surface-2);
+  }
+  .sub-title:first-child { margin-top: 0; }
+
+  .sub-title-sm {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 20px 0 8px;
+  }
+
+  p.desc {
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.8;
+  }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+  thead th {
+    background: var(--primary);
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+  }
+  thead th:first-child { border-radius: 8px 0 0 0; }
+  thead th:last-child  { border-radius: 0 8px 0 0; }
+  tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  tbody tr:nth-child(even):hover { background: #f1f5f9; }
+
+  /* ── CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.15s;
+  }
+  .card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 24px;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .flow-step {
+    padding: 10px 18px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .flow-step.highlight { background: var(--accent); color: white; border-color: var(--accent); }
+  .flow-arrow { color: var(--text-muted); font-size: 18px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0 24px;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .lang {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 11px;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .code-block .kw { color: #c084fc; }
+  .code-block .fn { color: #60a5fa; }
+  .code-block .str { color: #34d399; }
+  .code-block .cm { color: #475569; }
+  .code-block .num { color: #fb923c; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-blue   { background: #eff6ff; color: #2563eb; }
+  .badge-green  { background: #f0fdf4; color: #16a34a; }
+  .badge-red    { background: #fef2f2; color: #dc2626; }
+  .badge-yellow { background: #fefce8; color: #a16207; }
+  .badge-purple { background: #f5f3ff; color: #7c3aed; }
+  .badge-cyan   { background: #ecfeff; color: #0891b2; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .callout-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .callout-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+
+  /* ── LIST ── */
+  ul.check-list {
+    list-style: none;
+    margin: 12px 0 20px;
+  }
+  ul.check-list li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  ul.check-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  ol.num-list {
+    margin: 12px 0 20px 20px;
+  }
+  ol.num-list li {
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── PIPELINE VISUAL ── */
+  .pipeline {
+    display: flex;
+    gap: 0;
+    margin: 20px 0 28px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .pipe-stage {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+    padding: 16px 12px;
+    position: relative;
+    background: white;
+    border: 1px solid var(--border);
+  }
+  .pipe-stage:first-child { border-radius: 10px 0 0 10px; }
+  .pipe-stage:last-child  { border-radius: 0 10px 10px 0; }
+  .pipe-stage + .pipe-stage { border-left: none; }
+  .pipe-stage .pipe-num {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+  }
+  .pipe-stage h5 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .pipe-stage p { font-size: 11px; color: var(--text-muted); }
+  .pipe-stage.active { background: #eff6ff; border-color: var(--accent); }
+
+  /* ── METRIC CARDS ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+  .metric {
+    text-align: center;
+    padding: 20px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: white;
+  }
+  .metric .value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .metric .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero { padding: 48px 20px 40px; }
+    .hero h1 { font-size: 28px; }
+    .section-body { padding: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .pipeline { flex-direction: column; }
+    .pipe-stage { border-radius: 0 !important; border-left: 1px solid var(--border) !important; }
+    .pipe-stage + .pipe-stage { border-top: none; }
+  }
+
+  @media print {
+    .hero { padding: 40px; }
+    .section { break-inside: avoid; }
+    body { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ HERO ══════════════════════════════ -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">BOEC Technology Division</div>
+    <h1>Teller System <span>Development Report</span></h1>
+    <p class="hero-sub">รายงานการพัฒนาระบบ Channel Application สำหรับพนักงานหน้าเคาน์เตอร์ (Teller)<br>เชื่อมต่อกับระบบ Core Banking &mdash; ครอบคลุมตั้งแต่ Requirement จนถึง Maintenance</p>
+    <div class="hero-meta">
+      <span>&#128197; เมษายน 2569</span>
+      <span>&#128196; Version 1.0</span>
+      <span>&#128101; BOEC Technology Team</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════ TECH STRIP ══════════════════════════════ -->
+<div class="tech-strip">
+  <span class="pill pill-nest">NestJS</span>
+  <span class="pill pill-react">React</span>
+  <span class="pill pill-sql">MS SQL Server</span>
+  <span class="pill pill-redis">Redis + BullMQ</span>
+  <span class="pill pill-ocp">Kong Gateway</span>
+  <span class="pill pill-ocp">OpenShift</span>
+  <span class="pill pill-jenkins">Jenkins + Helm</span>
+</div>
+
+<!-- ══════════════════════════════ TOC ══════════════════════════════ -->
+<div class="toc-wrap">
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#sec1">Software Requirement &amp; Analysis</a></li>
+      <li><a href="#sec2">Software Design</a></li>
+      <li><a href="#sec3">Software Implementation</a></li>
+      <li><a href="#sec4">Software Deployment &mdash; CI/CD</a></li>
+      <li><a href="#sec5">Software Support &amp; Maintenance &mdash; Observability</a></li>
+    </ol>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════ MAIN ══════════════════════════════ -->
+<main class="main">
+
+<!-- ═══════════════ SECTION 1: REQUIREMENT & ANALYSIS ═══════════════ -->
+<section class="section" id="sec1">
+  <div class="section-header">
+    <div class="section-num sn-blue">01</div>
+    <div>
+      <h2>Software Requirement &amp; Analysis</h2>
+      <p>ข้อกำหนดความต้องการและการวิเคราะห์ระบบ</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <h3 class="sub-title">1.1 ภาพรวมระบบ (System Overview)</h3>
+    <p class="desc">ระบบ Teller System เป็น Channel Application ที่ใช้งานโดยพนักงานหน้าเคาน์เตอร์ (Teller) ในการทำธุรกรรมทางการเงิน โดยเชื่อมต่อกับระบบ Core Banking (Legacy System) ที่มีอยู่แล้ว ระบบต้องรองรับปริมาณธุรกรรมสูง ข้อมูลต้องถูกต้อง 100% และต้องพร้อมใช้งานตลอดเวลาทำการ</p>
+
+    <div class="flow">
+      <div class="flow-step">Teller (User)</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step highlight">React Frontend</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step" style="background:#f59e0b;color:white;border-color:#f59e0b;">Kong Gateway</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step highlight">NestJS Services</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step" style="background:#ef4444;color:white;border-color:#ef4444;">BullMQ</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">Core Banking</div>
+    </div>
+
+    <h3 class="sub-title">1.2 Functional Requirements</h3>
+
+    <table>
+      <thead>
+        <tr><th style="width:100px">Req ID</th><th>รายการ</th><th>รายละเอียด</th><th style="width:90px">Priority</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-blue">FR-001</span></td>
+          <td><strong>Transfer Money</strong></td>
+          <td>Teller สามารถโอนเงินระหว่างบัญชีผ่าน Core Banking ได้ โดยระบบต้องรองรับ Idempotency Key เพื่อป้องกันการทำรายการซ้ำซ้อนเมื่อ API ช้าหรือ Timeout</td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">FR-002</span></td>
+          <td><strong>Race Condition Handling</strong></td>
+          <td>ป้องกันการอัพเดตยอดคงเหลือผิดพลาดเมื่อ Teller 2 คนทำรายการบัญชีเดียวกันพร้อมกัน ด้วย Pessimistic Lock + Redis Distributed Lock</td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">FR-003</span></td>
+          <td><strong>Transaction History</strong></td>
+          <td>หน้าจอค้นหาและแสดงประวัติธุรกรรมทั้งหมด รองรับข้อมูลมากกว่า 50 ล้านรายการ พร้อม Filter ตามวันที่ ประเภท สถานะ เลขบัญชี</td>
+          <td><span class="badge badge-yellow">High</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">FR-004</span></td>
+          <td><strong>Transaction Status Mgmt</strong></td>
+          <td>จัดการกรณี Debit Transaction สำเร็จที่ Core Banking แต่ Channel เกิด Timeout โดยมีสถานะ PENDING, กระบวนการ Reconciliation, และ Callback/Retry</td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">FR-005</span></td>
+          <td><strong>Balance Inquiry (Cache)</strong></td>
+          <td>แสดงยอดคงเหลือที่ทันสมัยจาก Redis Cache เมื่อ Core Banking ช้า พร้อม TTL Strategy และ Cache Invalidation เมื่อมีรายการสำเร็จ</td>
+          <td><span class="badge badge-yellow">High</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-title">1.3 Non-Functional Requirements</h3>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:#eff6ff;color:#2563eb;">&#9889;</div>
+        <h4>Performance</h4>
+        <p>API Response &le; 500ms สำหรับ 50M+ records, Frontend FCP &le; 2 วินาที, Scroll ไม่กระตุก (No Jank)</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f0fdf4;color:#16a34a;">&#128274;</div>
+        <h4>Security</h4>
+        <p>XSS Prevention, CSP Header, Secure Token Handling, Sensitive Data Masking, OWASP Top 10 Compliance</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f5f3ff;color:#7c3aed;">&#128737;</div>
+        <h4>Availability</h4>
+        <p>SQL Server Always On Failover, Connection Pool, Retry with Backoff, Health Check ต่อเนื่อง</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fff7ed;color:#ea580c;">&#128640;</div>
+        <h4>Deployment</h4>
+        <p>Zero Downtime Deploy บน OpenShift ด้วย Blue-Green/Canary Strategy ในช่วง Business Hours</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#ecfeff;color:#0891b2;">&#128200;</div>
+        <h4>Observability</h4>
+        <p>Metrics, Logs, Traces ครบ 3 Pillars พร้อม Alert ก่อนผู้ใช้แจ้ง</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fef2f2;color:#dc2626;">&#128176;</div>
+        <h4>Data Integrity</h4>
+        <p>ยอดคงเหลือต้องถูกต้อง 100% แม้เกิด Failover, Race Condition หรือ Timeout</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">1.4 Stakeholder Analysis</h3>
+    <table>
+      <thead><tr><th>Stakeholder</th><th>บทบาท</th><th>ความคาดหวังหลัก</th></tr></thead>
+      <tbody>
+        <tr><td>Teller (End User)</td><td>ผู้ใช้งานหน้าเคาน์เตอร์</td><td>ระบบเร็ว ข้อมูลถูก สถานะชัดเจน</td></tr>
+        <tr><td>Product Owner</td><td>กำหนดทิศทางผลิตภัณฑ์</td><td>Feature ตรงความต้องการ ส่งมอบตรงเวลา</td></tr>
+        <tr><td>IT Operations</td><td>ดูแล Infrastructure</td><td>Deploy ง่าย Monitor ได้ Rollback เร็ว</td></tr>
+        <tr><td>Security Team</td><td>ตรวจสอบความปลอดภัย</td><td>ผ่านมาตรฐาน OWASP, IT Governance</td></tr>
+        <tr><td>Core Banking Team</td><td>ดูแลระบบแกนกลาง</td><td>Integration ไม่กระทบระบบเดิม</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 2: SOFTWARE DESIGN ═══════════════ -->
+<section class="section" id="sec2">
+  <div class="section-header">
+    <div class="section-num sn-green">02</div>
+    <div>
+      <h2>Software Design</h2>
+      <p>การออกแบบสถาปัตยกรรมและส่วนประกอบของระบบ</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <h3 class="sub-title">2.1 System Architecture — Microservices + Message Queue + API Gateway</h3>
+    <p class="desc">ระบบใช้สถาปัตยกรรมแบบ <strong>Microservices Architecture</strong> แยกแต่ละ Domain ออกเป็น Service อิสระ สื่อสารผ่าน RESTful API และ <strong>Message Queue (BullMQ + Redis)</strong> สำหรับ Async Processing ทุก Request เข้าผ่าน <strong>Kong API Gateway</strong> ที่จัดการ Rate Limiting, CORS, Logging และ Routing ไปยัง Service ที่เหมาะสม เชื่อมต่อไปยัง Core Banking ผ่าน Outbox Pattern เพื่อรับประกัน Eventual Consistency</p>
+
+    <div class="mermaid" style="background:white;border-radius:10px;border:1px solid var(--border);padding:24px;margin:16px 0 24px;overflow-x:auto;">
+graph TB
+  subgraph CLUSTER["☸ OpenShift Cluster"]
+    direction TB
+
+    REACT["🖥️ React App<br/><i>Frontend :80</i>"]
+    KONG["🌐 Kong API Gateway :8000<br/><i>Rate Limiting · CORS · Logging · Routing</i>"]
+
+    AUTH["🔐 Auth Service<br/>:3005<br/><i>JWT · Login · Refresh · Validate</i>"]
+
+    subgraph SERVICES["Business Services"]
+      direction LR
+      TRANSFER["💸 Transfer Service<br/>:3001"]
+      TRANSACTION["📋 Transaction Service<br/>:3002"]
+      RECONCILE["🔄 Reconciliation Service<br/>:3003"]
+      NOTIFICATION["🔔 Notification Service<br/>:3004"]
+    end
+
+    REDIS[("🔴 Redis<br/><i>BullMQ Message Queue<br/>+ Cache + Distributed Lock</i><br/>transfer-queue · notification-queue · reconciliation-queue")]
+
+    MSSQL[("🗄️ MS SQL Server<br/><i>Always On Failover</i><br/>accounts · transactions · outbox · users")]
+
+    COREBANK["🏦 Core Banking<br/><i>Legacy API</i>"]
+
+    subgraph OBSERVABILITY["📊 Observability"]
+      direction LR
+      PROM["Prometheus"]
+      GRAFANA["Grafana"]
+      ELK["ELK Stack"]
+      ALERT["Alert Manager"]
+    end
+  end
+
+  REACT -->|"HTTP"| KONG
+  KONG -->|"/api/v1/auth/*"| AUTH
+  KONG -->|"/api/v1/transfers"| TRANSFER
+  KONG -->|"/api/v1/transactions<br/>/api/v1/balance"| TRANSACTION
+  KONG -->|"/api/v1/reconciliation"| RECONCILE
+  KONG -->|"/api/v1/notifications"| NOTIFICATION
+
+  TRANSFER -.->|"validate token"| AUTH
+  TRANSACTION -.->|"validate token"| AUTH
+  RECONCILE -.->|"validate token"| AUTH
+
+  TRANSFER -->|"produce"| REDIS
+  RECONCILE -->|"produce"| REDIS
+  REDIS -->|"consume"| RECONCILE
+  REDIS -->|"consume"| NOTIFICATION
+
+  AUTH -->|"read/write"| MSSQL
+  TRANSFER -->|"read/write"| MSSQL
+  TRANSACTION -->|"read"| MSSQL
+  RECONCILE -->|"read/write"| MSSQL
+
+  TRANSFER -.->|"cache/lock"| REDIS
+  TRANSACTION -.->|"cache"| REDIS
+
+  RECONCILE -->|"Outbox Worker"| COREBANK
+
+  PROM -.-> GRAFANA
+  ALERT -.-> GRAFANA
+
+  style CLUSTER fill:#f8fafc,stroke:#1e3a5f,stroke-width:2px,color:#0f172a
+  style KONG fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+  style AUTH fill:#ec4899,stroke:#db2777,color:#fff,stroke-width:2px
+  style TRANSFER fill:#3b82f6,stroke:#2563eb,color:#fff
+  style TRANSACTION fill:#06b6d4,stroke:#0891b2,color:#fff
+  style RECONCILE fill:#8b5cf6,stroke:#7c3aed,color:#fff
+  style NOTIFICATION fill:#10b981,stroke:#059669,color:#fff
+  style REDIS fill:#dc2626,stroke:#b91c1c,color:#fff
+  style MSSQL fill:#16a34a,stroke:#15803d,color:#fff
+  style COREBANK fill:#0f172a,stroke:#1e293b,color:#fff
+  style REACT fill:#06b6d4,stroke:#0891b2,color:#fff
+  style SERVICES fill:#eff6ff,stroke:#bfdbfe,stroke-width:1px
+  style OBSERVABILITY fill:#f0fdf4,stroke:#bbf7d0,stroke-width:1px
+  style PROM fill:#fff,stroke:#e2e8f0
+  style GRAFANA fill:#fff,stroke:#e2e8f0
+  style ELK fill:#fff,stroke:#e2e8f0
+  style ALERT fill:#fff,stroke:#e2e8f0
+    </div>
+
+    <h3 class="sub-title">2.1.1 Service Decomposition</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Port</th><th>ความรับผิดชอบ</th><th>Message Queue</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-blue">Kong API Gateway</span></td>
+          <td>8000</td>
+          <td>Routing, Rate Limiting, CORS, Logging</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple" style="background:#fdf2f8;color:#db2777;">Auth Service</span></td>
+          <td>3005</td>
+          <td>Login, JWT Token Issue/Refresh/Validate, User Management</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">Transfer Service</span></td>
+          <td>3001</td>
+          <td>โอนเงิน, Idempotency, Distributed Lock, Outbox Write</td>
+          <td>Produce → transfer-queue, notification-queue</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-cyan">Transaction Service</span></td>
+          <td>3002</td>
+          <td>ค้นหาประวัติธุรกรรม, Balance Inquiry (Cache)</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">Reconciliation Service</span></td>
+          <td>3003</td>
+          <td>Outbox Worker → Core Banking, Reconcile PENDING</td>
+          <td>Produce → notification-queue</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">Notification Service</span></td>
+          <td>3004</td>
+          <td>รับ Event จาก Queue แจ้งเตือน Teller/Alert</td>
+          <td>Consume ← notification-queue</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">MS SQL Server</span></td>
+          <td>1433</td>
+          <td>Database หลัก — accounts, transactions, outbox, reconciliation</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">Redis</span></td>
+          <td>6379</td>
+          <td>BullMQ Message Broker, Cache, Distributed Lock</td>
+          <td>Broker สำหรับทุก Queue</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-title">2.1.2 Message Queue Architecture (BullMQ)</h3>
+    <p class="desc">ใช้ <strong>BullMQ</strong> (backed by Redis) เป็น Message Queue สำหรับ Async Processing ระหว่าง Services โดยมี Queue หลัก 3 ตัว:</p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:#eff6ff;color:#2563eb;">📤</div>
+        <h4>transfer-queue</h4>
+        <p>รับ Event เมื่อ Transfer ถูกสร้าง ส่งต่อให้ Outbox Worker ประมวลผลกับ Core Banking</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f0fdf4;color:#16a34a;">🔔</div>
+        <h4>notification-queue</h4>
+        <p>รับ Event สำเร็จ/ล้มเหลว/Alert แจ้งเตือน Teller ผ่าน WebSocket หรือ Slack/PagerDuty</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f5f3ff;color:#7c3aed;">🔄</div>
+        <h4>reconciliation-queue</h4>
+        <p>ตรวจสอบรายการ PENDING ที่ค้างนานเกินกำหนด เทียบสถานะกับ Core Banking</p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">Transfer Service</div>
+      <span class="flow-arrow">→ produce →</span>
+      <div class="flow-step highlight">BullMQ (Redis)</div>
+      <span class="flow-arrow">→ consume →</span>
+      <div class="flow-step">Reconciliation Service</div>
+      <span class="flow-arrow">→ produce →</span>
+      <div class="flow-step highlight">BullMQ (Redis)</div>
+      <span class="flow-arrow">→ consume →</span>
+      <div class="flow-step">Notification Service</div>
+    </div>
+
+    <h3 class="sub-title">2.1.3 API Gateway — Kong</h3>
+    <p class="desc">ใช้ <strong>Kong API Gateway</strong> เป็น Single Entry Point สำหรับทุก Request จาก Frontend โดย Kong จัดการ:</p>
+    <ul class="check-list">
+      <li>Request Routing — กระจาย Traffic ไปยัง Service ที่ถูกต้องตาม Path</li>
+      <li>Rate Limiting — จำกัด Request 100/นาที สำหรับ Transfer, 200/นาที สำหรับ Query</li>
+      <li>CORS — อนุญาต Cross-Origin Request พร้อม x-idempotency-key Header</li>
+      <li>Request ID Injection — เพิ่ม X-Request-ID ทุก Request สำหรับ Distributed Tracing</li>
+      <li>Centralized Logging — Log ทุก Request/Response ผ่าน Kong</li>
+      <li>Admin GUI — จัดการ Routes/Plugins ผ่าน http://localhost:8002</li>
+    </ul>
+
+    <h3 class="sub-title">2.1.4 Authentication &mdash; Auth Service + JWT Bearer Token</h3>
+    <p class="desc">ระบบ Authentication แยกเป็น <strong>Auth Service</strong> (:3005) ดูแลเรื่อง Identity โดยเฉพาะ ใช้ <strong>JWT Bearer Token</strong> สำหรับ Stateless Authentication ทุก API Request ต้องแนบ <code>Authorization: Bearer &lt;token&gt;</code> ใน Header</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:#fdf2f8;color:#db2777;">🔐</div>
+        <h4>Login Flow</h4>
+        <p>Teller ส่ง username/password → Auth Service ตรวจสอบ bcrypt hash → ออก Access Token (JWT 30 นาที) + Refresh Token (7 วัน)</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#eff6ff;color:#2563eb;">🔑</div>
+        <h4>Token Validation</h4>
+        <p>ทุก Business Service มี JwtAuthGuard เรียก Auth Service <code>GET /auth/validate</code> ตรวจ Bearer Token ก่อนดำเนินการ</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f0fdf4;color:#16a34a;">🔄</div>
+        <h4>Token Refresh + Rotation</h4>
+        <p>Frontend auto-refresh ก่อนหมดอายุ 2 นาที พร้อม Refresh Token Rotation (revoke token เก่าทุกครั้ง)</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fef2f2;color:#dc2626;">🚪</div>
+        <h4>Logout + Revoke</h4>
+        <p>Logout จะ revoke Refresh Token ทันที ป้องกันการใช้ token ที่หลุดออกไป</p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">Teller Login</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step highlight">Auth Service</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">JWT Access Token + Refresh Token</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">Frontend เก็บใน sessionStorage</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step highlight">ทุก API Request แนบ Bearer Token</div>
+    </div>
+
+    <table>
+      <thead><tr><th>Endpoint</th><th>Method</th><th>Auth Required</th><th>รายละเอียด</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/v1/auth/login</code></td><td>POST</td><td><span class="badge badge-green">Public</span></td><td>เข้าสู่ระบบ รับ Access + Refresh Token</td></tr>
+        <tr><td><code>/api/v1/auth/refresh</code></td><td>POST</td><td><span class="badge badge-green">Public</span></td><td>ต่ออายุ Token (Rotation)</td></tr>
+        <tr><td><code>/api/v1/auth/logout</code></td><td>POST</td><td><span class="badge badge-green">Public</span></td><td>Revoke Refresh Token</td></tr>
+        <tr><td><code>/api/v1/auth/validate</code></td><td>GET</td><td><span class="badge badge-yellow">Internal</span></td><td>ตรวจสอบ Bearer Token (เรียกจาก Service อื่น)</td></tr>
+        <tr><td><code>/api/v1/transfers</code></td><td>POST</td><td><span class="badge badge-red">Bearer Token</span></td><td>โอนเงิน</td></tr>
+        <tr><td><code>/api/v1/transactions</code></td><td>GET</td><td><span class="badge badge-red">Bearer Token</span></td><td>ค้นหาประวัติธุรกรรม</td></tr>
+        <tr><td><code>/api/v1/balance/:id</code></td><td>GET</td><td><span class="badge badge-red">Bearer Token</span></td><td>ตรวจสอบยอดคงเหลือ</td></tr>
+        <tr><td><code>/health/*</code></td><td>GET</td><td><span class="badge badge-green">Public</span></td><td>Health Check (ทุก Service)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">&#128161;</span>
+      <div><strong>JWT Payload:</strong> Token ประกอบด้วย <code>sub</code> (user ID), <code>username</code>, <code>role</code> (TELLER/SUPERVISOR/ADMIN), <code>branchCode</code> — ใช้สำหรับ Authorization ในแต่ละ Service โดยไม่ต้อง query DB ซ้ำ</div>
+    </div>
+
+    <h3 class="sub-title">2.2 Transfer Money &mdash; Idempotency &amp; Outbox Pattern</h3>
+    <p class="desc">โมดูลโอนเงินออกแบบโดยเน้น Idempotency เป็นหลัก เพื่อป้องกันการทำรายการซ้ำซ้อนเมื่อ API ช้าหรือ Timeout โดยใช้ Outbox Pattern ทำให้มั่นใจว่าข้อมูลจะถูกส่งไปยัง Core Banking อย่างแน่นอน</p>
+
+    <div class="flow">
+      <div class="flow-step">Client ส่ง Request + Idempotency Key</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">ตรวจสอบ Key ใน Redis</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step highlight">เขียน DB + Outbox (Single TX)</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">Outbox Worker ส่ง Core Banking</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-step">อัพเดตสถานะ</div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang">NestJS &mdash; Transfer Service</span>
+<span class="kw">@Injectable</span>()
+<span class="kw">export class</span> <span class="fn">TransferService</span> {
+  <span class="kw">async</span> <span class="fn">transfer</span>(dto: TransferDto, idempotencyKey: <span class="str">string</span>) {
+    <span class="cm">// 1. ตรวจสอบ Idempotency Key จาก Redis</span>
+    <span class="kw">const</span> existing = <span class="kw">await</span> <span class="kw">this</span>.redis.<span class="fn">get</span>(<span class="str">`idem:${idempotencyKey}`</span>);
+    <span class="kw">if</span> (existing) <span class="kw">return</span> JSON.<span class="fn">parse</span>(existing);
+
+    <span class="cm">// 2. Acquire Distributed Lock</span>
+    <span class="kw">const</span> lock = <span class="kw">await</span> <span class="kw">this</span>.redlock.<span class="fn">acquire</span>([<span class="str">`lock:account:${dto.fromAccount}`</span>], <span class="num">5000</span>);
+
+    <span class="kw">try</span> {
+      <span class="cm">// 3. Single DB Transaction: หักยอด + เขียน Outbox</span>
+      <span class="kw">await</span> <span class="kw">this</span>.dataSource.transaction(<span class="kw">async</span> (manager) => {
+        <span class="kw">await</span> manager.<span class="fn">query</span>(
+          <span class="str">`UPDATE accounts SET balance = balance - @amount
+           WHERE id = @fromAccount AND balance >= @amount`</span>  <span class="cm">// Pessimistic</span>
+        );
+        <span class="kw">await</span> manager.<span class="fn">save</span>(OutboxMessage, {
+          aggregateId: dto.fromAccount,
+          payload: JSON.<span class="fn">stringify</span>(dto),
+          status: <span class="str">'PENDING'</span>,
+        });
+      });
+
+      <span class="cm">// 4. Store Idempotency Key ใน Redis (TTL 24h)</span>
+      <span class="kw">await</span> <span class="kw">this</span>.redis.<span class="fn">set</span>(<span class="str">`idem:${idempotencyKey}`</span>, result, <span class="str">'EX'</span>, <span class="num">86400</span>);
+    } <span class="kw">finally</span> {
+      <span class="kw">await</span> lock.<span class="fn">release</span>();
+    }
+  }
+}
+    </div>
+
+    <h3 class="sub-title">2.3 Database Design</h3>
+    <table>
+      <thead><tr><th>Table</th><th>วัตถุประสงค์</th><th>Design Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>accounts</code></td><td>ข้อมูลบัญชีและยอดคงเหลือ</td><td>Row-level Locking, Optimistic/Pessimistic Lock Support</td></tr>
+        <tr><td><code>transactions</code></td><td>ประวัติธุรกรรม 50M+ records</td><td><strong>Table Partitioning</strong> ตามวันที่, Covering Index สำหรับ Query Pattern หลัก</td></tr>
+        <tr><td><code>outbox_messages</code></td><td>ข้อความที่ต้องส่งไป Core Banking</td><td>Polling Worker อ่านและส่ง, สถานะ PENDING/SENT/FAILED</td></tr>
+        <tr><td><code>idempotency_keys</code></td><td>ป้องกัน Duplicate (Fallback จาก Redis)</td><td>Unique Constraint, Auto-cleanup เมื่อหมดอายุ</td></tr>
+        <tr><td><code>users</code></td><td>ข้อมูลผู้ใช้ (Teller/Supervisor/Admin)</td><td>bcrypt password hash, role-based, branch_code</td></tr>
+        <tr><td><code>refresh_tokens</code></td><td>Refresh Token สำหรับ JWT Rotation</td><td>FK → users, revoked flag, 7-day expiry</td></tr>
+        <tr><td><code>reconciliation_logs</code></td><td>ผลการ Reconcile Channel vs Core Banking</td><td>match_result: MATCH/MISMATCH/PENDING</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">&#128161;</span>
+      <div><strong>Performance Strategy สำหรับ 50M+ Records:</strong> ใช้ Table Partitioning แบ่งตามเดือน, Columnstore Index สำหรับ Analytical Query, และ Covering Index สำหรับ OLTP Query ที่ใช้บ่อย ร่วมกับ Redis Cache ชั้นแรก</div>
+    </div>
+
+    <h3 class="sub-title">2.4 Redis Architecture</h3>
+    <table>
+      <thead><tr><th>Use Case</th><th>Key Pattern</th><th>TTL</th><th>Strategy</th></tr></thead>
+      <tbody>
+        <tr><td>Balance Cache</td><td><code>balance:{accountId}</code></td><td>30 วินาที</td><td>Cache-Aside + Invalidate on Write</td></tr>
+        <tr><td>Idempotency</td><td><code>idem:{key}</code></td><td>24 ชั่วโมง</td><td>SET NX + Response Cache</td></tr>
+        <tr><td>Distributed Lock</td><td><code>lock:account:{id}</code></td><td>5 วินาที</td><td>Redlock Algorithm</td></tr>
+        <tr><td>Session</td><td><code>session:{token}</code></td><td>30 นาที</td><td>Sliding Expiration</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-title">2.5 Frontend Design &mdash; Security, Auth &amp; Performance</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:#fdf2f8;color:#db2777;">🔐</div>
+        <h4>Login Page + Auth Gate</h4>
+        <p>หน้า Login แยกต่างหาก ถ้ายังไม่ login จะเข้าหน้าอื่นไม่ได้ ใช้ AuthContext (React Context) จัดการ state ทั้ง app</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#eff6ff;color:#2563eb;">🔑</div>
+        <h4>Bearer Token Auto-Attach</h4>
+        <p>API client แนบ <code>Authorization: Bearer &lt;token&gt;</code> ทุก request อัตโนมัติ ถ้าได้ 401 จะ redirect กลับ Login ทันที</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#f0fdf4;color:#16a34a;">🔄</div>
+        <h4>Auto Token Refresh</h4>
+        <p>ตั้ง timer refresh token ก่อนหมดอายุ 2 นาที พร้อม Rotation — ถ้า refresh ไม่สำเร็จจะ logout อัตโนมัติ</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fff7ed;color:#ea580c;">&#128206;</div>
+        <h4>Virtualized List</h4>
+        <p>ใช้ @tanstack/react-virtual สำหรับ Transaction History เพื่อ Render เฉพาะ Rows ที่อยู่ใน Viewport ลด Memory และป้องกัน Jank</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fef2f2;color:#dc2626;">&#128274;</div>
+        <h4>XSS Prevention</h4>
+        <p>Sanitize ทุก Input ด้วย DOMPurify, หลีกเลี่ยง dangerouslySetInnerHTML, Escape Output ทุกจุด</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#ecfeff;color:#0891b2;">&#128683;</div>
+        <h4>CSP Header + Security Headers</h4>
+        <p>Nginx เพิ่ม X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy และ CSP ที่เข้มงวด</p>
+      </div>
+    </div>
+
+    <p class="desc"><strong>หน้าจอหลัก 4 หน้า:</strong> Login → โอนเงิน (Transfer) → ประวัติธุรกรรม (Transaction History + Infinite Scroll) → ตรวจสอบยอดคงเหลือ (Balance Inquiry + Cache indicator)</p>
+
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 3: IMPLEMENTATION ═══════════════ -->
+<section class="section" id="sec3">
+  <div class="section-header">
+    <div class="section-num sn-purple">03</div>
+    <div>
+      <h2>Software Implementation</h2>
+      <p>รายละเอียดการพัฒนาและโค้ดหลักของระบบ</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <h3 class="sub-title">3.1 Backend Implementation (NestJS)</h3>
+
+    <h4 class="sub-title-sm">3.1.1 Project Structure — Microservices</h4>
+    <div class="code-block">
+      <span class="lang">Project Structure</span>
+teller-system/
+├── <span class="fn">services/</span>
+│   ├── <span class="fn">api-gateway/</span>                      <span class="cm"># Kong API Gateway Config</span>
+│   │   ├── kong.yml                      <span class="cm"># Declarative Route Config</span>
+│   │   └── setup-kong.sh                 <span class="cm"># Admin API Setup Script</span>
+│   ├── <span class="fn">auth-service/</span>                     <span class="cm"># :3005 — Authentication (JWT)</span>
+│   │   └── src/
+│   │       ├── auth/
+│   │       │   ├── auth.controller.ts     <span class="cm"># login / refresh / logout / validate</span>
+│   │       │   ├── auth.service.ts        <span class="cm"># Credential verify + Token issue</span>
+│   │       │   ├── token.service.ts       <span class="cm"># JWT sign/verify + Refresh rotation</span>
+│   │       │   └── auth.dto.ts
+│   │       └── entities/
+│   │           ├── user.entity.ts         <span class="cm"># users table (bcrypt hash)</span>
+│   │           └── refresh-token.entity.ts
+│   ├── <span class="fn">frontend/</span>                          <span class="cm"># :80 — React + Vite + Nginx</span>
+│   │   ├── src/
+│   │   │   ├── auth/
+│   │   │   │   └── auth-context.tsx       <span class="cm"># AuthProvider + useAuth hook</span>
+│   │   │   ├── api/
+│   │   │   │   └── client.ts             <span class="cm"># fetch wrapper + Bearer token</span>
+│   │   │   ├── pages/
+│   │   │   │   ├── LoginPage.tsx
+│   │   │   │   ├── TransferPage.tsx
+│   │   │   │   ├── TransactionHistoryPage.tsx <span class="cm"># Virtualized List</span>
+│   │   │   │   └── BalancePage.tsx
+│   │   │   └── App.tsx                    <span class="cm"># Auth gate + Router</span>
+│   │   ├── nginx.conf                     <span class="cm"># SPA fallback + /api proxy → Kong</span>
+│   │   └── Dockerfile
+│   ├── <span class="fn">transfer-service/</span>                 <span class="cm"># :3001 — โอนเงิน</span>
+│   │   └── src/
+│   │       ├── transfer/
+│   │       │   ├── transfer.controller.ts <span class="cm"># POST /transfers</span>
+│   │       │   ├── transfer.service.ts    <span class="cm"># Idempotency + Lock + Outbox</span>
+│   │       │   ├── transfer.producer.ts   <span class="cm"># BullMQ Producer</span>
+│   │       │   └── transfer.dto.ts
+│   │       ├── entities/                  <span class="cm"># TypeORM Entities (MSSQL)</span>
+│   │       ├── guards/
+│   │       │   └── jwt-auth.guard.ts      <span class="cm"># Bearer token → Auth Service validate</span>
+│   │       ├── infrastructure/
+│   │       │   └── redis-lock.service.ts  <span class="cm"># Redlock Distributed Lock</span>
+│   │       └── health/
+│   ├── <span class="fn">transaction-service/</span>              <span class="cm"># :3002 — ประวัติ + ยอดคงเหลือ</span>
+│   │   └── src/
+│   │       ├── transaction/
+│   │       │   ├── transaction.controller.ts
+│   │       │   └── transaction.service.ts <span class="cm"># Cursor Pagination 50M+</span>
+│   │       ├── balance/
+│   │       │   ├── balance.controller.ts
+│   │       │   └── balance.service.ts     <span class="cm"># Redis Cache-Aside</span>
+│   │       └── guards/
+│   │           └── jwt-auth.guard.ts      <span class="cm"># Bearer token → Auth Service validate</span>
+│   ├── <span class="fn">reconciliation-service/</span>           <span class="cm"># :3003 — Outbox Worker + Reconcile</span>
+│   │   └── src/
+│   │       ├── outbox/
+│   │       │   └── outbox.worker.ts       <span class="cm"># Cron → Core Banking</span>
+│   │       └── reconcile/
+│   │           └── reconcile.service.ts   <span class="cm"># ตรวจสอบ PENDING</span>
+│   └── <span class="fn">notification-service/</span>             <span class="cm"># :3004 — Queue Consumer</span>
+│       └── src/
+│           └── notification/
+│               └── notification.processor.ts <span class="cm"># BullMQ Worker</span>
+├── <span class="fn">shared/</span>                                <span class="cm"># Shared DTOs, Constants, Guards</span>
+│   └── src/
+│       ├── constants/queues.ts
+│       ├── dto/transfer.dto.ts
+│       ├── config/redis.config.ts
+│       ├── guards/jwt-auth.guard.ts       <span class="cm"># Reusable JWT Guard</span>
+│       └── decorators/
+│           ├── public.decorator.ts        <span class="cm"># @Public() skip auth</span>
+│           └── current-user.decorator.ts  <span class="cm"># @CurrentUser() extract user</span>
+├── <span class="fn">infrastructure/</span>
+│   └── db/init.sql                        <span class="cm"># MSSQL Schema + users + Seed</span>
+└── docker-compose.yml                     <span class="cm"># 12 containers ทั้งหมด</span>
+    </div>
+
+    <h4 class="sub-title-sm">3.1.2 SQL Server Failover Handling</h4>
+    <div class="code-block">
+      <span class="lang">NestJS &mdash; Database Config</span>
+<span class="cm">// infrastructure/database/database.config.ts</span>
+<span class="kw">export const</span> <span class="fn">dbConfig</span>: TypeOrmModuleOptions = {
+  type: <span class="str">'mssql'</span>,
+  host: process.env.<span class="fn">DB_HOST</span>,
+  extra: {
+    <span class="cm">// Connection Pool สำหรับ High Availability</span>
+    pool: {
+      max: <span class="num">20</span>,
+      min: <span class="num">5</span>,
+      acquireTimeoutMillis: <span class="num">30000</span>,
+      idleTimeoutMillis: <span class="num">10000</span>,
+    },
+    options: {
+      encrypt: <span class="num">true</span>,
+      trustServerCertificate: <span class="num">false</span>,
+      <span class="cm">// Always On Failover Partner</span>
+      failoverPartner: process.env.<span class="fn">DB_FAILOVER_HOST</span>,
+      multiSubnetFailover: <span class="num">true</span>,
+      connectRetryCount: <span class="num">3</span>,
+      connectRetryInterval: <span class="num">1000</span>,
+    },
+  },
+};
+
+<span class="cm">// Retry Interceptor with Exponential Backoff</span>
+<span class="kw">@Injectable</span>()
+<span class="kw">export class</span> <span class="fn">RetryInterceptor</span> <span class="kw">implements</span> NestInterceptor {
+  <span class="fn">intercept</span>(context, next) {
+    <span class="kw">return</span> next.<span class="fn">handle</span>().<span class="fn">pipe</span>(
+      <span class="fn">retry</span>({
+        count: <span class="num">3</span>,
+        delay: (error, retryCount) => {
+          <span class="kw">if</span> (!<span class="fn">isTransientError</span>(error)) <span class="kw">throw</span> error;
+          <span class="kw">const</span> delay = Math.<span class="fn">pow</span>(<span class="num">2</span>, retryCount) * <span class="num">1000</span>; <span class="cm">// 2s, 4s, 8s</span>
+          <span class="kw">return</span> <span class="fn">timer</span>(delay);
+        },
+      })
+    );
+  }
+}
+    </div>
+
+    <h3 class="sub-title">3.2 Frontend Implementation (React + Vite)</h3>
+
+    <h4 class="sub-title-sm">3.2.1 Authentication &mdash; Auth Context + Bearer Token</h4>
+    <div class="code-block">
+      <span class="lang">React &mdash; API Client (Bearer Token)</span>
+<span class="cm">// api/client.ts — ทุก request แนบ Bearer Token อัตโนมัติ</span>
+<span class="kw">function</span> <span class="fn">getAccessToken</span>(): <span class="str">string</span> | <span class="kw">null</span> {
+  <span class="kw">const</span> stored = sessionStorage.<span class="fn">getItem</span>(<span class="str">'teller_auth'</span>);
+  <span class="kw">return</span> stored ? JSON.<span class="fn">parse</span>(stored).accessToken : <span class="kw">null</span>;
+}
+
+<span class="kw">async function</span> <span class="fn">request</span>&lt;T&gt;(path: <span class="str">string</span>, options?: RequestInit): Promise&lt;T&gt; {
+  <span class="kw">const</span> token = <span class="fn">getAccessToken</span>();
+  <span class="kw">const</span> headers = {
+    <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+    ...(token &amp;&amp; { <span class="str">'Authorization'</span>: <span class="str">`Bearer ${token}`</span> }),
+  };
+
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/v1${path}`</span>, { ...options, headers });
+
+  <span class="kw">if</span> (res.status === <span class="num">401</span>) {
+    sessionStorage.<span class="fn">removeItem</span>(<span class="str">'teller_auth'</span>);
+    window.location.href = <span class="str">'/'</span>;  <span class="cm">// Redirect to login</span>
+    <span class="kw">throw new</span> Error(<span class="str">'Session expired'</span>);
+  }
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+}
+    </div>
+
+    <div class="code-block">
+      <span class="lang">React &mdash; Auth Context (Token Lifecycle)</span>
+<span class="cm">// auth/auth-context.tsx — AuthProvider จัดการ login/logout/refresh</span>
+<span class="kw">const</span> <span class="fn">login</span> = <span class="kw">async</span> (username, password) =&gt; {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/v1/auth/login'</span>, {
+    method: <span class="str">'POST'</span>,
+    body: JSON.<span class="fn">stringify</span>({ username, password }),
+  });
+  <span class="kw">const</span> { accessToken, refreshToken, user, expiresIn } = <span class="kw">await</span> res.<span class="fn">json</span>();
+  sessionStorage.<span class="fn">setItem</span>(<span class="str">'teller_auth'</span>, JSON.<span class="fn">stringify</span>({ accessToken, refreshToken, user }));
+  <span class="fn">scheduleRefresh</span>(expiresIn);  <span class="cm">// Auto-refresh 2 นาทีก่อนหมดอายุ</span>
+};
+
+<span class="cm">// App.tsx — Auth Gate</span>
+<span class="kw">function</span> <span class="fn">AppRouter</span>() {
+  <span class="kw">const</span> { isAuthenticated } = <span class="fn">useAuth</span>();
+  <span class="kw">if</span> (!isAuthenticated) <span class="kw">return</span> &lt;<span class="fn">LoginPage</span> /&gt;;
+  <span class="kw">return</span> &lt;<span class="fn">AuthenticatedApp</span> /&gt;;  <span class="cm">// Sidebar + Routes</span>
+}
+    </div>
+
+    <h4 class="sub-title-sm">3.2.2 Transaction History &mdash; Virtualized List</h4>
+    <div class="code-block">
+      <span class="lang">React &mdash; Transaction History</span>
+<span class="kw">import</span> { useVirtualizer } <span class="kw">from</span> <span class="str">'@tanstack/react-virtual'</span>;
+<span class="kw">import</span> { useInfiniteQuery } <span class="kw">from</span> <span class="str">'@tanstack/react-query'</span>;
+
+<span class="kw">export function</span> <span class="fn">TransactionHistory</span>() {
+  <span class="kw">const</span> { data, fetchNextPage, hasNextPage } = <span class="fn">useInfiniteQuery</span>({
+    queryKey: [<span class="str">'transactions'</span>, filters],
+    queryFn: ({ pageParam }) =&gt;
+      api.<span class="fn">getTransactions</span>({ ...filters, cursor: pageParam, limit: <span class="num">50</span> }),
+    getNextPageParam: (last) =&gt; last.nextCursor,
+  });
+
+  <span class="kw">const</span> allRows = data?.pages.<span class="fn">flatMap</span>(p =&gt; p.items) ?? [];
+
+  <span class="kw">const</span> virtualizer = <span class="fn">useVirtualizer</span>({
+    count: hasNextPage ? allRows.length + <span class="num">1</span> : allRows.length,
+    getScrollElement: () =&gt; scrollRef.current,
+    estimateSize: () =&gt; <span class="num">64</span>,
+    overscan: <span class="num">10</span>,  <span class="cm">// Pre-render 10 rows above/below viewport</span>
+  });
+
+  <span class="cm">// Auto-fetch เมื่อ Scroll ใกล้ท้ายสุด</span>
+  <span class="kw">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> lastItem = virtualizer.<span class="fn">getVirtualItems</span>().<span class="fn">at</span>(-<span class="num">1</span>);
+    <span class="kw">if</span> (lastItem?.index &gt;= allRows.length - <span class="num">1</span> && hasNextPage) {
+      <span class="fn">fetchNextPage</span>();
+    }
+  }, [virtualizer.<span class="fn">getVirtualItems</span>()]);
+
+  <span class="kw">return</span> &lt;div ref={scrollRef}&gt;...virtualized rows...&lt;/div&gt;;
+}
+    </div>
+
+    <h3 class="sub-title">3.3 Testing Strategy</h3>
+    <table>
+      <thead><tr><th>ประเภท</th><th>เครื่องมือ</th><th>ขอบเขต</th><th>เป้าหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-green">Unit Test</span></td>
+          <td>Jest</td>
+          <td>Service Logic, Guards, Pipes, Validators</td>
+          <td>Coverage &ge; 80%</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Integration Test</span></td>
+          <td>Jest + Supertest</td>
+          <td>API Endpoints + DB + Redis</td>
+          <td>ทุก Endpoint + Edge Case</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">E2E Test</span></td>
+          <td>Playwright</td>
+          <td>Frontend User Flow ครบวงจร</td>
+          <td>Critical Path ทั้งหมด</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">Race Condition Test</span></td>
+          <td>Jest + Concurrent</td>
+          <td>2 Teller ทำรายการบัญชีเดียวกันพร้อมกัน</td>
+          <td>ยอดถูกต้อง 100%</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">Performance Test</span></td>
+          <td>k6 / Artillery</td>
+          <td>API Load Test, DB Query Performance</td>
+          <td>p99 &le; 500ms @ 50M records</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 4: DEPLOYMENT (CI/CD) ═══════════════ -->
+<section class="section" id="sec4">
+  <div class="section-header">
+    <div class="section-num sn-orange">04</div>
+    <div>
+      <h2>Software Deployment &mdash; CI/CD</h2>
+      <p>กระบวนการ Build, Test และ Deploy อัตโนมัติบน OpenShift</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <h3 class="sub-title">4.1 CI/CD Pipeline Overview</h3>
+
+    <div class="pipeline">
+      <div class="pipe-stage">
+        <div class="pipe-num" style="background:#3b82f6;">1</div>
+        <h5>Code Push</h5>
+        <p>Developer push ไปยัง Git Repository</p>
+      </div>
+      <div class="pipe-stage active">
+        <div class="pipe-num" style="background:#8b5cf6;">2</div>
+        <h5>Build &amp; Lint</h5>
+        <p>npm install, ESLint, TypeScript Compile</p>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-num" style="background:#06b6d4;">3</div>
+        <h5>Test</h5>
+        <p>Unit, Integration, Security Scan</p>
+      </div>
+      <div class="pipe-stage active">
+        <div class="pipe-num" style="background:#10b981;">4</div>
+        <h5>Docker Build</h5>
+        <p>Build Image &amp; Push Registry</p>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-num" style="background:#f59e0b;">5</div>
+        <h5>Deploy Staging</h5>
+        <p>Helm deploy + Smoke Test</p>
+      </div>
+      <div class="pipe-stage active">
+        <div class="pipe-num" style="background:#ef4444;">6</div>
+        <h5>Deploy Prod</h5>
+        <p>Blue-Green / Canary + Health Check</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">4.2 Jenkinsfile</h3>
+    <div class="code-block">
+      <span class="lang">Jenkinsfile (Declarative)</span>
+<span class="kw">pipeline</span> {
+  agent { label <span class="str">'openshift-agent'</span> }
+
+  environment {
+    REGISTRY    = <span class="str">'registry.internal.boec.com'</span>
+    IMAGE_NAME  = <span class="str">'teller-system'</span>
+    HELM_CHART  = <span class="str">'./helm/teller-system'</span>
+  }
+
+  <span class="kw">stages</span> {
+    <span class="kw">stage</span>(<span class="str">'Checkout'</span>)        { steps { checkout scm } }
+
+    <span class="kw">stage</span>(<span class="str">'Install &amp; Lint'</span>)  {
+      steps {
+        sh <span class="str">'npm ci'</span>
+        sh <span class="str">'npm run lint'</span>
+      }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Unit Test'</span>)       {
+      steps {
+        sh <span class="str">'npm run test -- --coverage'</span>
+      }
+      post { always { junit <span class="str">'coverage/junit.xml'</span> } }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Integration Test'</span>) {
+      steps {
+        sh <span class="str">'docker-compose -f docker-compose.test.yml up -d'</span>
+        sh <span class="str">'npm run test:e2e'</span>
+      }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Security Scan'</span>)   {
+      steps {
+        sh <span class="str">'npm audit --production'</span>
+        sh <span class="str">'trivy image ${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}'</span>
+      }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Docker Build'</span>)    {
+      steps {
+        sh <span class="str">"""
+          docker build -t ${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG} .
+          docker push ${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}
+        """</span>
+      }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Deploy Staging'</span>)  {
+      steps {
+        sh <span class="str">"""
+          helm upgrade --install teller-staging ${HELM_CHART} \
+            -n staging \
+            --set image.tag=${BUILD_TAG} \
+            -f ${HELM_CHART}/values-staging.yaml \
+            --wait --timeout 5m
+        """</span>
+      }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Smoke Test'</span>)      {
+      steps { sh <span class="str">'npm run test:smoke -- --env staging'</span> }
+    }
+
+    <span class="kw">stage</span>(<span class="str">'Deploy Production'</span>) {
+      when { branch <span class="str">'main'</span> }
+      steps {
+        <span class="fn">input</span> message: <span class="str">'Deploy to Production?'</span>
+        sh <span class="str">"""
+          helm upgrade --install teller-prod ${HELM_CHART} \
+            -n production \
+            --set image.tag=${BUILD_TAG} \
+            -f ${HELM_CHART}/values-production.yaml \
+            --wait --timeout 10m
+        """</span>
+      }
+    }
+  }
+
+  <span class="kw">post</span> {
+    failure { <span class="fn">slackSend</span>(channel: <span class="str">'#teller-alerts'</span>, message: <span class="str">"Build FAILED: ${BUILD_URL}"</span>) }
+    success { <span class="fn">slackSend</span>(channel: <span class="str">'#teller-deploys'</span>, message: <span class="str">"Deployed ${BUILD_TAG}"</span>) }
+  }
+}
+    </div>
+
+    <h3 class="sub-title">4.3 Helm Chart &mdash; Key Configuration</h3>
+    <div class="code-block">
+      <span class="lang">Helm &mdash; values-production.yaml</span>
+<span class="fn">replicaCount</span>: <span class="num">3</span>
+
+<span class="fn">image</span>:
+  repository: registry.internal.boec.com/teller-system
+  pullPolicy: Always
+
+<span class="fn">strategy</span>:
+  type: RollingUpdate        <span class="cm"># Blue-Green ผ่าน OpenShift Route</span>
+  rollingUpdate:
+    maxUnavailable: <span class="num">0</span>       <span class="cm"># ห้าม Pod หายแม้แต่ตัวเดียว</span>
+    maxSurge: <span class="num">1</span>             <span class="cm"># สร้าง Pod ใหม่ 1 ตัวก่อน ค่อยลบเก่า</span>
+
+<span class="fn">livenessProbe</span>:
+  httpGet:
+    path: /health/live
+    port: <span class="num">3000</span>
+  initialDelaySeconds: <span class="num">15</span>
+  periodSeconds: <span class="num">10</span>
+  failureThreshold: <span class="num">3</span>
+
+<span class="fn">readinessProbe</span>:
+  httpGet:
+    path: /health/ready       <span class="cm"># ตรวจ DB + Redis connection</span>
+    port: <span class="num">3000</span>
+  initialDelaySeconds: <span class="num">10</span>
+  periodSeconds: <span class="num">5</span>
+  failureThreshold: <span class="num">3</span>
+
+<span class="fn">resources</span>:
+  requests: { cpu: <span class="str">"250m"</span>, memory: <span class="str">"512Mi"</span> }
+  limits:   { cpu: <span class="str">"1000m"</span>, memory: <span class="str">"1Gi"</span> }
+
+<span class="fn">autoscaling</span>:
+  enabled: <span class="num">true</span>
+  minReplicas: <span class="num">3</span>
+  maxReplicas: <span class="num">10</span>
+  targetCPUUtilization: <span class="num">70</span>
+    </div>
+
+    <h3 class="sub-title">4.4 Deployment Strategy &mdash; Blue-Green on OpenShift</h3>
+    <p class="desc">เลือกใช้ Blue-Green Deployment ผ่าน OpenShift Route เพราะเป็นระบบธนาคารที่ต้องการ Zero Downtime อย่างเคร่งครัด โดยเฉพาะในช่วง Business Hours</p>
+
+    <div class="flow">
+      <div class="flow-step" style="background:#3b82f6;color:white;border-color:#3b82f6;">Blue (Current)</div>
+      <span class="flow-arrow">&#8592; &#128101; Traffic</span>
+      <span class="flow-arrow" style="margin:0 20px;">|</span>
+      <div class="flow-step" style="background:#10b981;color:white;border-color:#10b981;">Green (New)</div>
+      <span class="flow-arrow">&#8592; Smoke Test</span>
+    </div>
+
+    <ol class="num-list">
+      <li>Deploy เวอร์ชันใหม่เป็น <strong>Green</strong> โดยไม่รับ Traffic</li>
+      <li>รัน Smoke Test + Health Check บน Green</li>
+      <li>สลับ OpenShift Route ให้ชี้ไปที่ Green (ใช้เวลา &lt; 1 วินาที)</li>
+      <li>เก็บ Blue ไว้เป็น Rollback &mdash; หากมีปัญหาสลับกลับทันที</li>
+      <li>หลังยืนยันสำเร็จ ลบ Blue เก่าออก</li>
+    </ol>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">&#9888;&#65039;</span>
+      <div><strong>Business Hours Deploy:</strong> การ Deploy ในช่วงเวลาทำการต้องมั่นใจว่า Teller ทุกคนไม่ได้รับผลกระทบ ดังนั้น maxUnavailable จะตั้งเป็น 0 เสมอ และมี Manual Approval ก่อน Production Deploy</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 5: SUPPORT & MAINTENANCE (OBSERVABILITY) ═══════════════ -->
+<section class="section" id="sec5">
+  <div class="section-header">
+    <div class="section-num sn-cyan">05</div>
+    <div>
+      <h2>Software Support &amp; Maintenance &mdash; Observability</h2>
+      <p>ระบบ Monitoring, Logging, Tracing และ Alerting เพื่อรองรับการ Support</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <h3 class="sub-title">5.1 Three Pillars of Observability</h3>
+    <p class="desc">ระบบ Observability ออกแบบตามหลัก 3 เสาหลัก (Three Pillars) เพื่อให้ทีมสามารถตรวจพบ วินิจฉัย และแก้ไขปัญหาได้อย่างรวดเร็ว ก่อนที่ผู้ใช้จะได้รับผลกระทบ</p>
+
+    <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card" style="border-top: 3px solid #3b82f6;">
+        <h4 style="color:#3b82f6;">&#128202; Metrics (Prometheus)</h4>
+        <p>ข้อมูลเชิงตัวเลขที่บอกสถานะระบบ เช่น Response Time, Error Rate, Throughput, CPU, Memory, DB Connection Pool</p>
+      </div>
+      <div class="card" style="border-top: 3px solid #10b981;">
+        <h4 style="color:#10b981;">&#128209; Logs (ELK Stack)</h4>
+        <p>บันทึกเหตุการณ์แบบ Structured JSON พร้อม Correlation ID เพื่อติดตาม Request ข้ามระบบ</p>
+      </div>
+      <div class="card" style="border-top: 3px solid #8b5cf6;">
+        <h4 style="color:#8b5cf6;">&#128301; Traces (Distributed Tracing)</h4>
+        <p>ติดตาม Request ตั้งแต่ Frontend &rarr; Backend &rarr; Redis &rarr; SQL Server &rarr; Core Banking</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">5.2 Key Metrics &amp; Prometheus Configuration</h3>
+    <div class="code-block">
+      <span class="lang">NestJS &mdash; Prometheus Metrics</span>
+<span class="cm">// infrastructure/metrics/metrics.service.ts</span>
+<span class="kw">import</span> { Counter, Histogram, Gauge } <span class="kw">from</span> <span class="str">'prom-client'</span>;
+
+<span class="cm">// HTTP Request Duration</span>
+<span class="kw">export const</span> <span class="fn">httpRequestDuration</span> = <span class="kw">new</span> <span class="fn">Histogram</span>({
+  name: <span class="str">'http_request_duration_seconds'</span>,
+  help: <span class="str">'Duration of HTTP requests'</span>,
+  labelNames: [<span class="str">'method'</span>, <span class="str">'route'</span>, <span class="str">'status_code'</span>],
+  buckets: [<span class="num">0.05</span>, <span class="num">0.1</span>, <span class="num">0.25</span>, <span class="num">0.5</span>, <span class="num">1</span>, <span class="num">2.5</span>, <span class="num">5</span>],
+});
+
+<span class="cm">// Transfer Transaction Counter</span>
+<span class="kw">export const</span> <span class="fn">transferCounter</span> = <span class="kw">new</span> <span class="fn">Counter</span>({
+  name: <span class="str">'transfer_total'</span>,
+  help: <span class="str">'Total transfer transactions'</span>,
+  labelNames: [<span class="str">'status'</span>],  <span class="cm">// success, failed, duplicate, timeout</span>
+});
+
+<span class="cm">// DB Connection Pool Gauge</span>
+<span class="kw">export const</span> <span class="fn">dbPoolGauge</span> = <span class="kw">new</span> <span class="fn">Gauge</span>({
+  name: <span class="str">'db_pool_connections'</span>,
+  help: <span class="str">'Database connection pool status'</span>,
+  labelNames: [<span class="str">'state'</span>],  <span class="cm">// active, idle, waiting</span>
+});
+
+<span class="cm">// Redis Cache Hit/Miss</span>
+<span class="kw">export const</span> <span class="fn">cacheCounter</span> = <span class="kw">new</span> <span class="fn">Counter</span>({
+  name: <span class="str">'redis_cache_total'</span>,
+  help: <span class="str">'Redis cache hit/miss counter'</span>,
+  labelNames: [<span class="str">'result'</span>],  <span class="cm">// hit, miss</span>
+});
+
+<span class="cm">// Outbox Pending Messages</span>
+<span class="kw">export const</span> <span class="fn">outboxPendingGauge</span> = <span class="kw">new</span> <span class="fn">Gauge</span>({
+  name: <span class="str">'outbox_pending_messages'</span>,
+  help: <span class="str">'Number of pending outbox messages'</span>,
+});
+    </div>
+
+    <h3 class="sub-title">5.3 Structured Logging</h3>
+    <div class="code-block">
+      <span class="lang">Log Format &mdash; JSON</span>
+{
+  <span class="str">"timestamp"</span>:     <span class="str">"2569-04-07T10:23:45.123Z"</span>,
+  <span class="str">"level"</span>:         <span class="str">"info"</span>,
+  <span class="str">"correlationId"</span>: <span class="str">"req-abc123-def456"</span>,
+  <span class="str">"service"</span>:       <span class="str">"teller-backend"</span>,
+  <span class="str">"module"</span>:        <span class="str">"TransferService"</span>,
+  <span class="str">"action"</span>:        <span class="str">"transfer.execute"</span>,
+  <span class="str">"accountFrom"</span>:   <span class="str">"****5678"</span>,         <span class="cm">// Masked</span>
+  <span class="str">"amount"</span>:        <span class="num">50000</span>,
+  <span class="str">"duration_ms"</span>:   <span class="num">234</span>,
+  <span class="str">"status"</span>:        <span class="str">"success"</span>,
+  <span class="str">"traceId"</span>:       <span class="str">"abc123def456789"</span>
+}
+    </div>
+
+    <h3 class="sub-title">5.4 Alert Rules</h3>
+    <table>
+      <thead><tr><th>Alert Name</th><th>เงื่อนไข</th><th>Severity</th><th>การตอบสนอง</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>HighErrorRate</strong></td>
+          <td>Error Rate &gt; 5% ใน 5 นาที</td>
+          <td><span class="badge badge-red">Critical</span></td>
+          <td>แจ้ง On-call ทันที + ตรวจสอบ Logs</td>
+        </tr>
+        <tr>
+          <td><strong>SlowResponse</strong></td>
+          <td>p99 Latency &gt; 2s ใน 5 นาที</td>
+          <td><span class="badge badge-yellow">Warning</span></td>
+          <td>ตรวจสอบ DB Query Plan + Redis</td>
+        </tr>
+        <tr>
+          <td><strong>DBFailover</strong></td>
+          <td>DB Connection ล้มเหลว &gt; 3 ครั้ง</td>
+          <td><span class="badge badge-red">Critical</span></td>
+          <td>ตรวจสอบ Always On Status + Retry Logs</td>
+        </tr>
+        <tr>
+          <td><strong>OutboxBacklog</strong></td>
+          <td>Pending Messages &gt; 100 เกิน 10 นาที</td>
+          <td><span class="badge badge-yellow">Warning</span></td>
+          <td>ตรวจ Core Banking API + Outbox Worker</td>
+        </tr>
+        <tr>
+          <td><strong>RedisDown</strong></td>
+          <td>Redis health check ล้มเหลว</td>
+          <td><span class="badge badge-red">Critical</span></td>
+          <td>ระบบ Fallback ไป DB โดยตรง + แจ้ง Infra</td>
+        </tr>
+        <tr>
+          <td><strong>HighCPU</strong></td>
+          <td>CPU &gt; 85% เกิน 10 นาที</td>
+          <td><span class="badge badge-yellow">Warning</span></td>
+          <td>HPA Auto-scale + ตรวจสอบ Resource Leak</td>
+        </tr>
+        <tr>
+          <td><strong>ReconcileMismatch</strong></td>
+          <td>พบรายการไม่ตรงกันระหว่าง Channel/Core</td>
+          <td><span class="badge badge-red">Critical</span></td>
+          <td>แจ้งทีม Operations + หยุด Auto-reconcile</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-title">5.5 Grafana Dashboard Layout</h3>
+    <div class="metrics">
+      <div class="metric">
+        <div class="value" style="color:#3b82f6;">99.9%</div>
+        <div class="label">Uptime (SLA)</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="color:#10b981;">234ms</div>
+        <div class="label">Avg Response Time</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="color:#f59e0b;">0.12%</div>
+        <div class="label">Error Rate</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="color:#8b5cf6;">1.2K</div>
+        <div class="label">Requests/min</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="color:#06b6d4;">94%</div>
+        <div class="label">Cache Hit Rate</div>
+      </div>
+    </div>
+
+    <p class="desc">Dashboard แบ่งเป็น 4 กลุ่ม: (1) System Health &mdash; Uptime, Error Rate, Response Time (2) Business Metrics &mdash; Transfer Count, Success/Fail Ratio (3) Infrastructure &mdash; CPU, Memory, DB Pool, Redis Memory (4) Outbox &amp; Reconciliation &mdash; Pending Messages, Mismatch Count</p>
+
+    <h3 class="sub-title">5.6 Incident Response &amp; Runbook</h3>
+    <table>
+      <thead><tr><th>Severity</th><th>Response Time</th><th>ผู้รับผิดชอบ</th><th>ตัวอย่างสถานการณ์</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-red">P1 &mdash; Critical</span></td>
+          <td>&le; 15 นาที</td>
+          <td>On-call Engineer + Tech Lead</td>
+          <td>Transfer ล้มเหลวหมด, DB Failover ไม่สำเร็จ</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">P2 &mdash; High</span></td>
+          <td>&le; 30 นาที</td>
+          <td>On-call Engineer</td>
+          <td>Response ช้ามาก, Cache Miss Rate สูง</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">P3 &mdash; Medium</span></td>
+          <td>&le; 4 ชั่วโมง</td>
+          <td>Development Team</td>
+          <td>หน้าจอ History ช้าบางช่วง, Log ขาดหาย</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">P4 &mdash; Low</span></td>
+          <td>Next Sprint</td>
+          <td>Development Team</td>
+          <td>UI Bug เล็กน้อย, Dashboard แสดงผิด</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">&#9989;</span>
+      <div><strong>Proactive Maintenance:</strong> ระบบ Alert ถูกตั้งค่าให้แจ้งเตือน <em>ก่อน</em> เกิดปัญหาจริง เช่น แจ้งเมื่อ DB Pool ใกล้เต็ม (80%) ไม่ใช่เมื่อเต็มแล้ว เพื่อให้ทีมมีเวลา Investigate และ Scale ก่อนกระทบ Teller</div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════════════════════════ FOOTER ══════════════════════════════ -->
+<footer class="footer">
+  <p><strong>Teller System Development Report</strong> &mdash; BOEC Technology Division</p>
+  <p style="margin-top:6px;">Version 1.0 &bull; April 2569 &bull; Confidential</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '14px',
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+    },
+  });
+</script>
+</body>
+</html>

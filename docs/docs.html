@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System — Docs Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--p:#0f172a;--a:#3b82f6;--s:#f8fafc;--b:#e2e8f0;--t:#1e293b;--m:#64748b;--ok:#16a34a;--w:#a16207;--r:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--s);color:var(--t);line-height:1.7;font-size:14px}
+  .hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#1e40af 100%);color:#fff;padding:60px 40px 40px}
+  .hero-inner{max-width:960px;margin:0 auto}
+  .hero h1{font-size:30px;font-weight:700;margin-bottom:6px}
+  .hero p{color:rgba(255,255,255,.7);font-size:14px}
+  .c{max-width:960px;margin:0 auto;padding:0 24px 80px}
+  h2{font-size:22px;font-weight:700;margin:48px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--b);color:var(--p)}
+  h3{font-size:16px;font-weight:600;margin:28px 0 8px;color:var(--p)}
+  h4{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--m)}
+  table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:13px}
+  thead th{background:var(--p);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:12px}
+  thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--b);vertical-align:top}
+  tbody tr:hover{background:#f1f5f9}
+  .badge{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .bf{background:#dbeafe;color:#1d4ed8}.bg{background:#d1fae5;color:#065f46}.by{background:#fef3c7;color:#92400e}.bp{background:#ede9fe;color:#5b21b6}.br{background:#fce7f3;color:#9d174d}.bc{background:#e0e7ff;color:#3730a3}.bi{background:#f1f5f9;color:#475569}
+  .sec{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin:14px 0}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace}
+  .cmd{background:var(--p);color:#e2e8f0;padding:16px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.8;margin:10px 0;overflow-x:auto;white-space:pre}
+  .note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  .grid2 .sec{margin:0}
+  ul,ol{margin:8px 0 8px 20px;font-size:13px}
+  li{margin:3px 0}
+  .toc{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px 28px;margin:24px 0}
+  .toc ol{list-style:none;counter-reset:toc}
+  .toc li{counter-increment:toc;padding:8px 0;border-bottom:1px solid #f1f5f9}
+  .toc li:last-child{border-bottom:none}
+  .toc li a{text-decoration:none;color:var(--t);font-weight:500;display:flex;align-items:center;gap:10px}
+  .toc li a:hover{color:var(--a)}
+  .toc li a::before{content:"0" counter(toc);background:var(--s);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;color:var(--a)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Teller System — Docs Report</h1>
+  </div>
+</div>
+
+<div class="c">
+
+<nav class="toc">
+  <ol>
+    <li><a href="#s1">ระบบ Transfer Money (โอนเงิน)</a></li>
+    <li><a href="#s2">ระบบประวัติธุรกรรม (Transaction History)</a></li>
+    <li><a href="#s3">ระบบยอดคงเหลือ (Balance Inquiry)</a></li>
+    <li><a href="#s4">ระบบ Authentication</a></li>
+    <li><a href="#s5">ระบบ Reconciliation &amp; Outbox Worker</a></li>
+    <li><a href="#s6">ระบบ Notification (Message Queue Consumer)</a></li>
+    <li><a href="#s7">ระบบ API Gateway (Kong)</a></li>
+    <li><a href="#s8">ระบบ Monitoring &amp; Observability</a></li>
+    <li><a href="#s9">ระบบ CI/CD &amp; Deployment (OpenShift)</a></li>
+    <li><a href="#s10">ระบบ Account Registration (เปิดบัญชี)</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 1. TRANSFER MONEY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s1">1. ระบบ Transfer Money (โอนเงิน)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec">
+  <code>http://localhost:5173/</code> — หน้าแรกหลัง login (เมนู "โอนเงิน" ใน sidebar)
+</div>
+
+<h4>2. Logic Front-End — Data Fields</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Validation</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>
+      <tr><td>บัญชีต้นทาง (fromAccount)</td><td>text</td><td>required</td><td>DOMPurify sanitize</td></tr>
+      <tr><td>บัญชีปลายทาง (toAccount)</td><td>text</td><td>required</td><td>DOMPurify sanitize</td></tr>
+      <tr><td>จำนวนเงิน (amount)</td><td>number</td><td>required, min=0.01</td><td>step=0.01</td></tr>
+      <tr><td>หมายเหตุ (description)</td><td>text</td><td>optional, maxLength=500</td><td>DOMPurify sanitize</td></tr>
+    </tbody>
+  </table>
+  <p>Frontend สร้าง <code>x-idempotency-key</code> (UUID v4) อัตโนมัติทุกครั้งที่กดปุ่ม เพื่อป้องกัน duplicate</p>
+</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>transfer-service</code> (Port 3001)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Headers</th><th>Body</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>POST</td>
+        <td><code>/api/v1/transfers</code></td>
+        <td><code>Authorization: Bearer {token}</code><br><code>x-idempotency-key: {uuid}</code></td>
+        <td><code>{ fromAccount, toAccount, amount, currency, description? }</code></td>
+        <td><code>{ transactionId, transactionRef, status: "PENDING" }</code></td>
+      </tr>
+      <tr>
+        <td>GET</td>
+        <td><code>/api/v1/transfers/:id/status</code></td>
+        <td><code>Authorization: Bearer {token}</code></td>
+        <td>—</td>
+        <td><code>{ transactionId, ref, status }</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant T as Teller (Frontend)
+    participant K as Kong Gateway
+    participant TS as Transfer Service
+    participant R as Redis
+    participant DB as SQL Server
+    participant Q as BullMQ
+
+    T->>K: POST /transfers + Bearer Token + Idempotency Key
+    K->>TS: Route to Transfer Service
+    TS->>DB: Check Idempotency Key
+    alt Key exists
+        DB-->>TS: Cached response
+        TS-->>T: Return cached result
+    else Key not found
+        TS->>R: Acquire Distributed Lock (Redlock)
+        R-->>TS: Lock acquired
+        TS->>DB: BEGIN TRANSACTION
+        TS->>DB: SELECT account WITH LOCK (Pessimistic)
+        DB-->>TS: Account balance
+        alt Balance sufficient
+            TS->>DB: UPDATE balance = balance - amount
+            TS->>DB: INSERT transaction (PENDING)
+            TS->>DB: INSERT outbox_message (PENDING)
+            TS->>DB: COMMIT
+            TS->>DB: Save Idempotency Key (24h TTL)
+            TS->>Q: Publish transfer.initiated
+            TS->>R: Release Lock
+            TS-->>T: { transactionId, status: PENDING }
+        else Insufficient balance
+            TS->>DB: ROLLBACK
+            TS->>R: Release Lock
+            TS-->>T: 400 Bad Request
+        end
+    end
+</div>
+
+<h4>5. Logic ของ API</h4>
+<div class="sec">
+  <ol>
+    <li>ตรวจ Idempotency Key จาก DB (idempotency_keys table) — ถ้ามีอยู่แล้ว return cached response ทันที</li>
+    <li>ตรวจว่า fromAccount ≠ toAccount</li>
+    <li>Acquire Redis Distributed Lock (Redlock) บน <code>lock:account:{fromAccount}</code> TTL 5 วินาที</li>
+    <li>เปิด Single DB Transaction:
+      <ul>
+        <li>Pessimistic Lock (SELECT ... WITH LOCK) บน accounts row</li>
+        <li>ตรวจยอดคงเหลือ ≥ amount</li>
+        <li>หักยอด (UPDATE accounts SET balance = balance - amount)</li>
+        <li>สร้าง transaction record (status = PENDING)</li>
+        <li>เขียน outbox_messages (status = PENDING) — Outbox Pattern</li>
+      </ul>
+    </li>
+    <li>บันทึก Idempotency Key ใน DB (TTL 24 ชั่วโมง)</li>
+    <li>Publish message เข้า BullMQ (transfer-queue + notification-queue)</li>
+    <li>Release lock</li>
+  </ol>
+</div>
+
+<h4>7. Functional / Non-Functional Requirements</h4>
+<div class="grid2">
+  <div class="sec">
+    <strong>Functional</strong>
+    <ul>
+      <li><span class="badge bf">FR-001</span> Transfer Money — โอนเงินผ่าน Core Banking + Idempotency Key</li>
+      <li><span class="badge bf">FR-002</span> Race Condition Handling — Pessimistic Lock + Distributed Lock</li>
+      <li><span class="badge bf">FR-004</span> Transaction Status Mgmt — PENDING → SUCCESS/FAILED via Outbox</li>
+    </ul>
+  </div>
+  <div class="sec">
+    <strong>Non-Functional</strong>
+    <ul>
+      <li>Performance: API Response ≤ 500ms</li>
+      <li>Data Integrity: ยอดถูกต้อง 100% แม้ Race Condition</li>
+      <li>Security: Bearer Token required, input validation</li>
+    </ul>
+  </div>
+</div>
+
+<h4>8. Source Code &amp; DB Config</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ประเภท</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td><code>services/transfer-service/src/transfer/transfer.controller.ts</code></td></tr>
+      <tr><td>Service (Logic)</td><td><code>services/transfer-service/src/transfer/transfer.service.ts</code></td></tr>
+      <tr><td>BullMQ Producer</td><td><code>services/transfer-service/src/transfer/transfer.producer.ts</code></td></tr>
+      <tr><td>Distributed Lock</td><td><code>services/transfer-service/src/infrastructure/redis-lock.service.ts</code></td></tr>
+      <tr><td>Auth Guard</td><td><code>services/transfer-service/src/guards/jwt-auth.guard.ts</code></td></tr>
+      <tr><td>Entities</td><td><code>services/transfer-service/src/entities/*.ts</code></td></tr>
+      <tr><td>DB Schema</td><td><code>infrastructure/db/init.sql</code> — accounts, transactions, outbox_messages, idempotency_keys</td></tr>
+      <tr><td>Frontend Page</td><td><code>services/frontend/src/pages/TransferPage.tsx</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>9. Definition of Done (DoD)</h4>
+<div class="sec">
+  <ul>
+    <li>โอนเงินสำเร็จ สถานะเริ่มต้น PENDING → SUCCESS หลัง Outbox Worker ทำงาน</li>
+    <li>Idempotency Key ซ้ำ → return cached response ไม่หักยอดซ้ำ</li>
+    <li>2 Tellers โอนพร้อมกัน → ยอดถูกต้อง ไม่ติดลบ</li>
+    <li>ยอดไม่พอ → BadRequestException</li>
+    <li>ไม่มี Bearer Token → 401 Unauthorized</li>
+    <li>Unit Test Coverage ≥ 80%</li>
+  </ul>
+</div>
+
+<h4>10. การวัดผล QA</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ระดับ</th><th>เครื่องมือ</th><th>Test Cases</th></tr></thead>
+    <tbody>
+      <tr><td>Unit Test</td><td>Jest + @nestjs/testing</td><td>transfer.service.spec.ts (idempotency, lock, insufficient balance, not found), transfer.producer.spec.ts, transfer.controller.spec.ts</td></tr>
+      <tr><td>E2E</td><td>bash e2e/run-all.sh</td><td>E2E-01 (Race Condition), E2E-02 (Idempotency), E2E-03 (Outbox → SUCCESS)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 2. TRANSACTION HISTORY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s2">2. ระบบประวัติธุรกรรม (Transaction History)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec"><code>http://localhost:5173/transactions</code></div>
+
+<h4>2. Logic Front-End — Data Fields</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>
+      <tr><td>เลขบัญชี (accountId)</td><td>text input (filter)</td><td>กรองตามบัญชี</td></tr>
+      <tr><td>สถานะ (status)</td><td>select</td><td>ทุกสถานะ / PENDING / SUCCESS / FAILED</td></tr>
+      <tr><td>ประเภท (type)</td><td>select</td><td>ทุกประเภท / TRANSFER / DEPOSIT / WITHDRAWAL</td></tr>
+    </tbody>
+  </table>
+  <p>ใช้ <code>@tanstack/react-virtual</code> (Virtualized List) render เฉพาะ rows ที่อยู่ใน viewport + <code>@tanstack/react-query</code> useInfiniteQuery สำหรับ infinite scroll + cursor pagination</p>
+  <p>แสดงเวลาเป็น UTC+7 (Asia/Bangkok) โดย append 'Z' ให้ datetime ที่ไม่มี timezone suffix</p>
+</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>transaction-service</code> (Port 3002)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Query Params</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>GET</td>
+        <td><code>/api/v1/transactions</code></td>
+        <td><code>accountId, startDate, endDate, type, status, cursor, limit</code></td>
+        <td><code>{ items: Transaction[], nextCursor: string|null, hasMore: boolean }</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant T as Teller (Frontend)
+    participant K as Kong Gateway
+    participant TXS as Transaction Service
+    participant DB as SQL Server
+
+    T->>T: Apply filters (accountId, status, type)
+    T->>K: GET /transactions?accountId=X&limit=50&cursor=Y
+    K->>TXS: Route request
+    TXS->>DB: SELECT WHERE filters + created_at < cursor ORDER BY created_at DESC TAKE 51
+    DB-->>TXS: 51 rows (or less)
+    TXS->>TXS: hasMore = rows > 50, pop last
+    TXS-->>T: { items: 50, nextCursor, hasMore: true }
+    T->>T: Render via Virtualized List
+    Note over T: User scrolls down
+    T->>K: GET /transactions?cursor=nextCursor&limit=50
+    K->>TXS: Next page (cursor-based, no OFFSET)
+    TXS->>DB: Next 50 rows
+    DB-->>TXS: Results
+    TXS-->>T: Page 2
+</div>
+
+<h4>5. Logic ของ API</h4>
+<div class="sec">
+  <ol>
+    <li>สร้าง QueryBuilder จาก TypeORM</li>
+    <li>Apply filters ตาม query params (accountId ค้นทั้ง from_account และ to_account)</li>
+    <li>ใช้ Cursor-based Pagination (WHERE created_at &lt; :cursor) แทน OFFSET — ประสิทธิภาพดีกว่ามากสำหรับ 50M+ records</li>
+    <li>ORDER BY created_at DESC, TAKE limit+1 (เพื่อตรวจ hasMore)</li>
+    <li>ถ้าได้ rows > limit → hasMore=true, pop row สุดท้าย, nextCursor = last item's createdAt</li>
+  </ol>
+</div>
+
+<h4>7. Functional / Non-Functional Requirements</h4>
+<div class="grid2">
+  <div class="sec"><strong>Functional</strong><ul><li><span class="badge bf">FR-003</span> Transaction History — ค้นหา 50M+ records, Filter ตามวันที่/ประเภท/สถานะ/เลขบัญชี</li></ul></div>
+  <div class="sec"><strong>Non-Functional</strong><ul><li>Performance: API ≤ 500ms สำหรับ 50M+ records</li><li>Frontend FCP ≤ 2 วินาที, Scroll ไม่กระตุก</li></ul></div>
+</div>
+
+<h4>8. Source Code &amp; DB Config</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ประเภท</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td><code>services/transaction-service/src/transaction/transaction.controller.ts</code></td></tr>
+      <tr><td>Service</td><td><code>services/transaction-service/src/transaction/transaction.service.ts</code></td></tr>
+      <tr><td>Entity</td><td><code>services/transaction-service/src/entities/transaction.entity.ts</code></td></tr>
+      <tr><td>DB Index</td><td><code>infrastructure/db/init.sql</code> — IX_transactions_from, IX_transactions_date</td></tr>
+      <tr><td>Frontend</td><td><code>services/frontend/src/pages/TransactionHistoryPage.tsx</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>9. DoD</h4>
+<div class="sec"><ul>
+  <li>Query 2M records ใน &lt; 2 วินาที</li>
+  <li>Cursor pagination ทำงาน (hasMore + nextCursor)</li>
+  <li>Filter ทุกตัวทำงานถูกต้อง</li>
+  <li>Virtualized List scroll ไม่กระตุก</li>
+  <li>แสดงเวลา UTC+7</li>
+</ul></div>
+
+<h4>10. การวัดผล QA</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ระดับ</th><th>Test Cases</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>transaction.service.spec.ts — cursor pagination, filters, empty result, hasMore</td></tr>
+      <tr><td>E2E</td><td>E2E-05 — Query 2M records &lt; 2s, 50 items, hasMore=true, page 2 works</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 3. BALANCE INQUIRY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s3">3. ระบบยอดคงเหลือ (Balance Inquiry)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec"><code>http://localhost:5173/balance</code></div>
+
+<h4>2. Logic Front-End — Data Fields</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>
+      <tr><td>เลขบัญชี</td><td>text input</td><td>required, DOMPurify sanitize</td></tr>
+    </tbody>
+  </table>
+  <p>แสดงผล: ยอดคงเหลือ (format th-TH), สกุลเงิน, แหล่งข้อมูล (cache/database badge)</p>
+</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>transaction-service</code> (Port 3002)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/api/v1/balance/:accountId</code></td><td><code>{ accountId, balance, source: "cache"|"database" }</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant T as Teller (Frontend)
+    participant K as Kong Gateway
+    participant TXS as Transaction Service
+    participant R as Redis
+    participant DB as SQL Server
+
+    T->>K: GET /balance/1001000001
+    K->>TXS: Route request
+    TXS->>R: GET balance:1001000001
+    alt Cache HIT
+        R-->>TXS: "50000.50"
+        TXS-->>T: { balance: 50000.50, source: "cache" }
+    else Cache MISS
+        R-->>TXS: null
+        TXS->>DB: SELECT balance FROM accounts WHERE account_number = ?
+        alt Account found
+            DB-->>TXS: { balance: 50000.50 }
+            TXS->>R: SET balance:1001000001 "50000.50" EX 30
+            TXS-->>T: { balance: 50000.50, source: "database" }
+        else Not found
+            DB-->>TXS: null
+            TXS-->>T: 404 Not Found
+        end
+    end
+</div>
+
+<h4>5. Logic ของ API</h4>
+<div class="sec">
+  <ol>
+    <li>ตรวจ Redis Cache key <code>balance:{accountId}</code></li>
+    <li>ถ้ามี → return ทันที (source = "cache")</li>
+    <li>ถ้าไม่มี → query DB (accounts table)</li>
+    <li>ถ้าไม่พบบัญชี → throw NotFoundException</li>
+    <li>เขียน Redis Cache ด้วย TTL 30 วินาที</li>
+    <li>Return (source = "database")</li>
+  </ol>
+  <p>Cache Invalidation: เมื่อมี transfer สำเร็จ outbox worker จะอัพเดทยอด → cache จะ expire ใน 30s</p>
+</div>
+
+<h4>7. Functional / Non-Functional Requirements</h4>
+<div class="grid2">
+  <div class="sec"><strong>Functional</strong><ul><li><span class="badge bf">FR-005</span> Balance Inquiry (Cache) — แสดงยอดจาก Redis Cache เมื่อ Core Banking ช้า</li></ul></div>
+  <div class="sec"><strong>Non-Functional</strong><ul><li>Performance: Response ≤ 100ms จาก cache</li><li>Availability: Fallback ไป DB เมื่อ Redis ล่ม</li></ul></div>
+</div>
+
+<h4>8. Source Code &amp; DB Config</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ประเภท</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td><code>services/transaction-service/src/balance/balance.controller.ts</code></td></tr>
+      <tr><td>Service</td><td><code>services/transaction-service/src/balance/balance.service.ts</code></td></tr>
+      <tr><td>Redis Config</td><td><code>shared/src/config/redis.config.ts</code></td></tr>
+      <tr><td>Frontend</td><td><code>services/frontend/src/pages/BalancePage.tsx</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>9. DoD</h4>
+<div class="sec"><ul>
+  <li>เรียก 2 ครั้งติดกัน → ครั้งที่ 2 source=cache</li>
+  <li>บัญชีไม่มี → 404 Not Found</li>
+  <li>แสดงยอดถูกต้อง format th-TH</li>
+</ul></div>
+
+<h4>10. การวัดผล QA</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ระดับ</th><th>Test Cases</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>balance.service.spec.ts — cache hit, cache miss → DB, not found</td></tr>
+      <tr><td>E2E</td><td>E2E-06 — เรียก 2 ครั้ง ครั้งที่ 2 source=cache</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 4. AUTHENTICATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s4">4. ระบบ Authentication</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec"><code>http://localhost:5173/</code> — หน้า Login (แสดงเมื่อยังไม่ login)</div>
+
+<h4>2. Logic Front-End — Data Fields</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>
+      <tr><td>ชื่อผู้ใช้ (username)</td><td>text</td><td>required, autoFocus</td></tr>
+      <tr><td>รหัสผ่าน (password)</td><td>password</td><td>required</td></tr>
+    </tbody>
+  </table>
+  <p>AuthContext (React Context) จัดการ: login → เก็บ token ใน sessionStorage → auto-refresh ก่อนหมดอายุ 2 นาที → logout revoke token</p>
+  <p>API client แนบ <code>Authorization: Bearer {token}</code> ทุก request อัตโนมัติ ถ้าได้ 401 → redirect กลับ login</p>
+</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>auth-service</code> (Port 3005)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Body / Headers</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/api/v1/auth/login</code></td><td>Public</td><td><code>{ username, password }</code></td><td><code>{ accessToken, refreshToken, expiresIn, user }</code></td></tr>
+      <tr><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>Public</td><td><code>{ refreshToken }</code></td><td><code>{ accessToken, refreshToken, expiresIn }</code></td></tr>
+      <tr><td>POST</td><td><code>/api/v1/auth/logout</code></td><td>Public</td><td><code>{ refreshToken }</code></td><td><code>{ message }</code></td></tr>
+      <tr><td>GET</td><td><code>/api/v1/auth/validate</code></td><td>Internal</td><td><code>Authorization: Bearer {token}</code></td><td><code>{ valid, payload? }</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant T as Teller (Frontend)
+    participant K as Kong Gateway
+    participant AS as Auth Service
+    participant DB as SQL Server
+    participant BS as Business Service
+
+    Note over T,AS: Login Flow
+    T->>K: POST /auth/login { username, password }
+    K->>AS: Route (Public)
+    AS->>DB: SELECT user WHERE username AND isActive
+    DB-->>AS: User record
+    AS->>AS: bcrypt.compare(password, hash)
+    AS->>AS: Sign JWT (30min) + Generate Refresh Token (7d)
+    AS->>DB: INSERT refresh_tokens
+    AS->>DB: UPDATE users SET lastLogin
+    AS-->>T: { accessToken, refreshToken, expiresIn, user }
+    T->>T: Store in sessionStorage
+
+    Note over T,BS: API Call with Bearer Token
+    T->>K: GET /balance/X + Authorization: Bearer JWT
+    K->>BS: Route to Business Service
+    BS->>AS: GET /auth/validate + Bearer JWT
+    AS->>AS: jwt.verify(token)
+    AS-->>BS: { valid: true, payload }
+    BS-->>T: API Response
+
+    Note over T,AS: Token Refresh (auto, 2min before expiry)
+    T->>K: POST /auth/refresh { refreshToken }
+    K->>AS: Route (Public)
+    AS->>DB: Find refresh token (not revoked, not expired)
+    AS->>DB: Revoke old token (rotation)
+    AS->>AS: Sign new JWT + new Refresh Token
+    AS-->>T: { accessToken, refreshToken }
+</div>
+
+<h4>5. Logic ของ API</h4>
+<div class="sec">
+  <ol>
+    <li>Login: ค้นหา user (username + isActive=true) → bcrypt.compare password → ออก JWT access token (30 นาที) + refresh token (random 64 bytes, 7 วัน) → บันทึก refresh_tokens table → อัพเดท lastLogin</li>
+    <li>Refresh: ตรวจ refresh token ใน DB (not revoked, not expired) → revoke token เก่า (rotation) → ออก token ใหม่ทั้งคู่</li>
+    <li>Logout: revoke refresh token ใน DB</li>
+    <li>Validate: verify JWT signature → return payload (sub, username, role, branchCode)</li>
+  </ol>
+  <p>JWT Payload: <code>{ sub: userId, username, role: TELLER|SUPERVISOR|ADMIN, branchCode }</code></p>
+</div>
+
+<h4>7. Functional / Non-Functional Requirements</h4>
+<div class="grid2">
+  <div class="sec"><strong>Functional</strong><ul><li>Teller ต้อง login ก่อนใช้งาน</li><li>Token หมดอายุ → redirect login</li><li>Role-based access (TELLER, SUPERVISOR, ADMIN)</li></ul></div>
+  <div class="sec"><strong>Non-Functional</strong><ul><li>Security: bcrypt hash, JWT, refresh token rotation, OWASP compliance</li><li>Availability: Auth service แยก → ไม่กระทบ business services เมื่อ deploy</li></ul></div>
+</div>
+
+<h4>8. Source Code &amp; DB Config</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ประเภท</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td><code>services/auth-service/src/auth/auth.controller.ts</code></td></tr>
+      <tr><td>Service</td><td><code>services/auth-service/src/auth/auth.service.ts</code></td></tr>
+      <tr><td>Token Service</td><td><code>services/auth-service/src/auth/token.service.ts</code></td></tr>
+      <tr><td>Entities</td><td><code>services/auth-service/src/entities/user.entity.ts</code>, <code>refresh-token.entity.ts</code></td></tr>
+      <tr><td>DB Schema</td><td><code>infrastructure/db/init.sql</code> — users, refresh_tokens tables</td></tr>
+      <tr><td>Frontend Auth</td><td><code>services/frontend/src/auth/auth-context.tsx</code></td></tr>
+      <tr><td>Frontend Login</td><td><code>services/frontend/src/pages/LoginPage.tsx</code></td></tr>
+      <tr><td>API Client</td><td><code>services/frontend/src/api/client.ts</code> — Bearer token auto-attach</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>9. DoD</h4>
+<div class="sec"><ul>
+  <li>Login สำเร็จ → ได้ accessToken + refreshToken</li>
+  <li>ไม่มี token → 401</li>
+  <li>Token ผิด → 401</li>
+  <li>Refresh → ได้ token ใหม่, token เก่า revoke</li>
+  <li>Reuse old refresh token → 401 (rotation)</li>
+  <li>Wrong password → 401</li>
+</ul></div>
+
+<h4>10. การวัดผล QA</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ระดับ</th><th>Test Cases</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>auth.service.spec.ts (11 tests), token.service.spec.ts (11 tests), auth.controller.spec.ts (6 tests)</td></tr>
+      <tr><td>E2E</td><td>E2E-07 — 8 assertions ครอบคลุม full auth lifecycle</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 5. RECONCILIATION & OUTBOX -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s5">5. ระบบ Reconciliation &amp; Outbox Worker</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec">ไม่มี UI โดยตรง — เป็น background service, ดูผลผ่าน <code>GET /api/v1/reconciliation/logs</code></div>
+
+<h4>2. Logic Front-End</h4>
+<div class="sec">ไม่มี — เป็น backend-only service</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>reconciliation-service</code> (Port 3003)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Query</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/api/v1/reconciliation/logs</code></td><td><code>matchResult?</code> (MATCH/MISMATCH/PENDING)</td><td><code>ReconciliationLog[]</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant OW as Outbox Worker (Cron 5s)
+    participant DB as SQL Server
+    participant CB as Core Banking
+    participant Q as BullMQ
+    participant RS as Reconcile (Cron 1min)
+
+    Note over OW,CB: Outbox Worker
+    OW->>DB: SELECT outbox WHERE status=PENDING
+    DB-->>OW: Messages
+    OW->>CB: Call Core Banking API
+    alt Success
+        CB-->>OW: OK
+        OW->>DB: Credit account + status=SUCCESS + outbox=SENT
+        OW->>Q: transfer.completed
+    else Failed (max retries)
+        OW->>DB: status=FAILED
+        OW->>Q: transfer.failed
+    end
+
+    Note over RS,Q: Reconciliation
+    RS->>DB: SELECT PENDING transactions older than 5min
+    RS->>CB: Check status
+    RS->>DB: INSERT reconciliation_log
+    alt MISMATCH
+        RS->>Q: notify.alert
+    end
+</div>
+
+<h4>5. Logic ของ API</h4>
+<div class="sec">
+  <strong>Outbox Worker (Cron ทุก 5 วินาที):</strong>
+  <ol>
+    <li>อ่าน outbox_messages ที่ status=PENDING (ทีละ 10)</li>
+    <li>เรียก Core Banking API</li>
+    <li>สำเร็จ → credit บัญชีปลายทาง + update transaction status=SUCCESS + mark outbox SENT + notify queue</li>
+    <li>ล้มเหลว → increment retryCount, ถ้า retryCount ≥ maxRetries → mark FAILED + update transaction FAILED + notify queue</li>
+  </ol>
+  <strong>Reconciliation (Cron ทุก 1 นาที):</strong>
+  <ol>
+    <li>ค้นหา transactions ที่ PENDING นานเกิน 5 นาที</li>
+    <li>ตรวจสถานะจาก Core Banking</li>
+    <li>เปรียบเทียบ → สร้าง reconciliation_logs (MATCH/MISMATCH)</li>
+    <li>ถ้า MISMATCH → ส่ง alert ผ่าน notification queue</li>
+  </ol>
+</div>
+
+<h4>7. FR / NFR</h4>
+<div class="grid2">
+  <div class="sec"><strong>Functional</strong><ul><li><span class="badge bf">FR-004</span> Transaction Status Mgmt — PENDING, Reconciliation, Callback/Retry</li></ul></div>
+  <div class="sec"><strong>Non-Functional</strong><ul><li>Data Integrity: ยอดถูกต้อง 100%</li><li>Availability: Retry with backoff, max retries</li></ul></div>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ประเภท</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Outbox Worker</td><td><code>services/reconciliation-service/src/outbox/outbox.worker.ts</code></td></tr>
+      <tr><td>Reconcile Service</td><td><code>services/reconciliation-service/src/reconcile/reconcile.service.ts</code></td></tr>
+      <tr><td>Reconcile Controller</td><td><code>services/reconciliation-service/src/reconcile/reconcile.controller.ts</code></td></tr>
+      <tr><td>DB</td><td><code>infrastructure/db/init.sql</code> — outbox_messages, reconciliation_logs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>9. DoD</h4>
+<div class="sec"><ul>
+  <li>Transfer PENDING → Outbox Worker → SUCCESS ภายใน 10 วินาที</li>
+  <li>Max retries → FAILED + notification</li>
+  <li>PENDING > 5 นาที → reconciliation log สร้าง</li>
+  <li>MISMATCH → alert ส่งผ่าน queue</li>
+</ul></div>
+
+<h4>10. QA</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>ระดับ</th><th>Test Cases</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>outbox.worker.spec.ts (4 tests), reconcile.service.spec.ts (5 tests), reconcile.controller.spec.ts (2 tests)</td></tr>
+      <tr><td>E2E</td><td>E2E-03 (Outbox → SUCCESS), E2E-04 (Reconciliation endpoint)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 6. NOTIFICATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s6">6. ระบบ Notification (Message Queue Consumer)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec">ไม่มี UI — เป็น BullMQ Worker consumer</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>notification-service</code> (Port 3004) — Health endpoint: <code>GET /api/v1/notifications/health</code></div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant Q as BullMQ (notification-queue)
+    participant NP as Notification Processor
+    participant WS as WebSocket/SSE (TODO)
+    participant SL as Slack/PagerDuty (TODO)
+
+    Q->>NP: Job: transfer.completed
+    NP->>NP: Log success
+    NP-->>WS: Notify Teller UI
+
+    Q->>NP: Job: transfer.failed
+    NP->>NP: Log failure
+    NP-->>WS: Alert Teller UI
+
+    Q->>NP: Job: notify.alert (RECONCILE_MISMATCH)
+    NP->>NP: Log critical alert
+    NP-->>SL: Send to Slack/PagerDuty
+</div>
+
+<h4>5. Logic</h4>
+<div class="sec">
+  <p>BullMQ Processor รับ events จาก <code>notification-queue</code>:</p>
+  <ul>
+    <li><code>transfer.completed</code> → log + (TODO: WebSocket/SSE แจ้ง Teller)</li>
+    <li><code>transfer.failed</code> → log + (TODO: แจ้ง Teller)</li>
+    <li><code>notify.alert</code> → log + (TODO: Slack/PagerDuty)</li>
+  </ul>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec"><code>services/notification-service/src/notification/notification.processor.ts</code></div>
+
+<h4>10. QA</h4>
+<div class="sec">Unit: notification.processor.spec.ts (4 tests) + notification.controller.spec.ts (1 test)</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 7. API GATEWAY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s7">7. ระบบ API Gateway (Kong)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec">Kong Admin GUI: <code>http://localhost:8002</code> — Gateway Proxy: <code>http://localhost:8000</code></div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant K as Kong Gateway :8000
+    participant TS as Transfer Svc
+    participant TXS as Transaction Svc
+    participant AS as Auth Svc
+    participant RS as Reconcile Svc
+
+    C->>K: HTTPS Request
+    K->>K: Rate Limit Check (100/min)
+    K->>K: CORS Validation
+    K->>K: Inject X-Request-ID
+    K->>K: Log Request
+
+    alt /api/v1/auth/*
+        K->>AS: Route (Public)
+    else /api/v1/transfers
+        K->>TS: Route (Protected)
+    else /api/v1/transactions or /balance
+        K->>TXS: Route (Protected)
+    else /api/v1/reconciliation
+        K->>RS: Route (Protected)
+    end
+</div>
+
+<h4>5. Logic</h4>
+<div class="sec">
+  <ul>
+    <li>Request Routing — กระจาย traffic ตาม path ไปยัง service ที่ถูกต้อง</li>
+    <li>Rate Limiting — 100 req/min (plugin: rate-limiting)</li>
+    <li>CORS — อนุญาต x-idempotency-key header</li>
+    <li>Request ID — inject X-Request-ID ทุก request สำหรับ distributed tracing</li>
+    <li>Centralized Logging</li>
+  </ul>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec">
+  <code>services/api-gateway/kong.yml</code> (declarative config)<br>
+  <code>services/api-gateway/setup-kong.sh</code> (Admin API setup script)
+</div>
+
+<h4>10. QA</h4>
+<div class="sec">E2E-10 — ตรวจ RateLimit headers จาก Kong response</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 8. MONITORING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s8">8. ระบบ Monitoring &amp; Observability</h2>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant SVC as NestJS Services
+    participant P as Prometheus
+    participant G as Grafana
+    participant ELK as ELK Stack
+    participant AM as AlertManager
+    participant SL as Slack
+
+    SVC->>P: Expose /metrics (http_request_duration, transfer_total, db_pool, cache_hit)
+    P->>P: Scrape every 15s
+    P->>G: Query metrics
+    G->>G: Render dashboards
+
+    SVC->>ELK: Structured JSON logs (correlationId, traceId)
+    ELK->>ELK: Index + Search
+
+    P->>AM: Alert rule triggered (ErrorRate > 5%)
+    AM->>SL: Send alert to #teller-alerts
+    AM->>AM: Page on-call engineer
+</div>
+
+<h4>5. Logic / Design</h4>
+<div class="sec">
+  <p>Three Pillars of Observability:</p>
+  <ol>
+    <li><strong>Metrics (Prometheus)</strong> — http_request_duration_seconds, transfer_total, db_pool_connections, redis_cache_total, outbox_pending_messages</li>
+    <li><strong>Logs (ELK Stack)</strong> — Structured JSON logs พร้อม correlationId, service name, action, masked sensitive data, traceId</li>
+    <li><strong>Traces (Distributed Tracing)</strong> — ติดตาม request ตั้งแต่ Frontend → Backend → Redis → SQL Server → Core Banking</li>
+  </ol>
+  <p>Alert Rules: HighErrorRate (&gt;5%), SlowResponse (p99 &gt;2s), DBFailover, OutboxBacklog (&gt;100), RedisDown, HighCPU (&gt;85%), ReconcileMismatch</p>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec">
+  Design อยู่ใน <code>requirement.html</code> Section 5 — Prometheus metrics code, structured log format, alert rules table, Grafana dashboard layout
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 9. CI/CD -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s9">9. ระบบ CI/CD &amp; Deployment (OpenShift)</h2>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant D as Developer
+    participant GH as GitHub
+    participant J as Jenkins
+    participant SQ as SonarQube
+    participant H as Harbor Registry
+    participant OCP as OpenShift
+    participant ZAP as OWASP ZAP
+
+    D->>GH: git push (main)
+    GH->>J: Webhook trigger
+    J->>J: npm ci + lint + tsc
+    J->>J: GitLeaks scan
+    J->>J: Unit Test + Coverage
+    J->>SQ: SonarQube analysis
+    SQ-->>J: Quality Gate PASS
+    J->>J: Docker build (6 services)
+    J->>J: Trivy scan each image
+    J->>H: Push images to Harbor
+    J->>J: Playwright E2E tests
+    J->>OCP: helm upgrade --install (staging)
+    OCP-->>J: Health check OK
+    J->>ZAP: DAST scan on staging
+    ZAP-->>J: No critical findings
+    J->>J: Manual Approval (Tech Lead)
+    J->>OCP: helm upgrade --install (production)
+    OCP->>OCP: Blue-Green switch route
+    OCP-->>J: Deploy success
+    J->>J: Slack notification
+</div>
+
+<h4>5. Logic / Design</h4>
+<div class="sec">
+  <p>Pipeline: Code Push → Build &amp; Lint → Unit Test → Integration Test → Security Scan → Docker Build → Deploy Staging → Smoke Test → Deploy Production (Manual Approval)</p>
+  <p>Deployment Strategy: <strong>Blue-Green</strong> ผ่าน OpenShift Route — Zero Downtime, maxUnavailable=0, maxSurge=1</p>
+  <p>Probes:</p>
+  <ul>
+    <li>Liveness: <code>GET /health/live</code> — ตรวจว่า process ยังทำงาน</li>
+    <li>Readiness: <code>GET /health/ready</code> — ตรวจ DB + Redis connection ก่อนรับ traffic</li>
+  </ul>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec">
+  <p>Jenkinsfile + Helm values อยู่ใน <code>requirement.html</code> Section 4</p>
+  <p>Health Controller: <code>services/transfer-service/src/health/health.controller.ts</code></p>
+  <p>DB Config (failover): <code>services/transfer-service/src/app.module.ts</code> — TypeORM extra options</p>
+</div>
+
+<h4>10. QA</h4>
+<div class="sec">E2E-09 — Liveness/Readiness probes ทำงาน ทุก service ตอบ health</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 10. ACCOUNT REGISTRATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2 id="s10">10. ระบบ Account Registration (เปิดบัญชี)</h2>
+
+<h4>1. UI Link</h4>
+<div class="sec"><code>http://localhost:5173/accounts</code></div>
+
+<h4>2. Logic Front-End — Data Fields</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Validation</th></tr></thead>
+    <tbody>
+      <tr><td>เลขบัญชี</td><td>text</td><td>required, maxLength=20</td></tr>
+      <tr><td>ชื่อบัญชี</td><td>text</td><td>required, maxLength=200</td></tr>
+      <tr><td>ยอดเงินฝากเริ่มต้น</td><td>number</td><td>optional, min=0</td></tr>
+    </tbody>
+  </table>
+  <p>แสดงตารางบัญชีทั้งหมดด้านล่าง (auto-refresh หลังสร้างสำเร็จ)</p>
+</div>
+
+<h4>3. API Service</h4>
+<div class="sec"><code>transaction-service</code> (Port 3002)</div>
+
+<h4>4. API Specification</h4>
+<div class="sec">
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Body / Response</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/api/v1/accounts</code></td><td>Body: <code>{ accountNumber, accountName, initialDeposit?, currency? }</code><br>Response: <code>{ id, accountNumber, accountName, balance, currency, status }</code></td></tr>
+      <tr><td>GET</td><td><code>/api/v1/accounts</code></td><td>Response: <code>AccountResponse[]</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4>Sequence Diagram</h4>
+<div class="mermaid">
+sequenceDiagram
+    participant T as Teller (Frontend)
+    participant K as Kong Gateway
+    participant TXS as Transaction Service
+    participant DB as SQL Server
+
+    T->>K: POST /accounts { accountNumber, accountName, initialDeposit }
+    K->>TXS: Route (Protected)
+    TXS->>DB: SELECT WHERE account_number = ?
+    alt Exists
+        DB-->>TXS: Found
+        TXS-->>T: 409 Conflict
+    else New
+        DB-->>TXS: null
+        TXS->>DB: INSERT accounts (ACTIVE)
+        TXS-->>T: { id, status: ACTIVE }
+    end
+</div>
+
+<h4>5. Logic</h4>
+<div class="sec">
+  <ol>
+    <li>ตรวจว่าเลขบัญชีไม่ซ้ำ (findOne) → ถ้าซ้ำ throw ConflictException (409)</li>
+    <li>สร้าง account record (status=ACTIVE, balance=initialDeposit หรือ 0)</li>
+    <li>Return account data</li>
+  </ol>
+</div>
+
+<h4>8. Source Code</h4>
+<div class="sec">
+  <code>services/transaction-service/src/account/account.controller.ts</code><br>
+  <code>services/transaction-service/src/account/account.service.ts</code><br>
+  <code>services/frontend/src/pages/AccountPage.tsx</code>
+</div>
+
+<h4>9. DoD</h4>
+<div class="sec"><ul>
+  <li>สร้างบัญชีสำเร็จ status=ACTIVE</li>
+  <li>เลขบัญชีซ้ำ → 409 Conflict</li>
+  <li>List บัญชีแสดงบัญชีใหม่</li>
+</ul></div>
+
+<h4>10. QA</h4>
+<div class="sec">
+  Unit: account.service.spec.ts (4 tests), account.controller.spec.ts (2 tests)<br>
+  E2E: E2E-11 — create, duplicate 409, list contains new
+</div>
+
+</div>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { fontFamily: 'IBM Plex Sans Thai, sans-serif', fontSize: '13px' }, sequence: { useMaxWidth: true, actorMargin: 40, messageFontSize: 12 } });
+</script>
+</body>
+</html>

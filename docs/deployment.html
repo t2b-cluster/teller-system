@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System — Software Deployment Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--p:#0f172a;--a:#3b82f6;--s:#f8fafc;--b:#e2e8f0;--t:#1e293b;--m:#64748b;--ok:#16a34a;--w:#a16207;--d:#dc2626;--r:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--s);color:var(--t);line-height:1.7;font-size:14px}
+  .hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#1e40af 100%);color:#fff;padding:60px 40px 40px}
+  .hero-inner{max-width:960px;margin:0 auto}
+  .hero h1{font-size:30px;font-weight:700;margin-bottom:6px}
+  .hero p{color:rgba(255,255,255,.7);font-size:14px}
+  .hero-meta{display:flex;gap:20px;margin-top:16px;font-size:12px;color:rgba(255,255,255,.5)}
+  .c{max-width:960px;margin:0 auto;padding:0 24px 80px}
+  h2{font-size:22px;font-weight:700;margin:48px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--b);color:var(--p)}
+  h3{font-size:16px;font-weight:600;margin:28px 0 8px;color:var(--p)}
+  h4{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--m)}
+  p.desc{color:var(--t);margin-bottom:14px;line-height:1.8}
+  table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:13px}
+  thead th{background:var(--p);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:12px;letter-spacing:.3px}
+  thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--b);vertical-align:top}
+  tbody tr:hover{background:#f1f5f9}
+  .badge{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .bg{background:#d1fae5;color:#065f46}.br{background:#fef2f2;color:#dc2626}.by{background:#fef3c7;color:#92400e}.bb{background:#dbeafe;color:#1d4ed8}.bp{background:#ede9fe;color:#5b21b6}.bc{background:#e0e7ff;color:#3730a3}.bi{background:#f1f5f9;color:#475569}
+  .sec{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin:14px 0}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace}
+  .cmd{background:var(--p);color:#e2e8f0;padding:18px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.9;margin:10px 0;overflow-x:auto;white-space:pre}
+  .note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  .warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:10px 0}
+  .grid2 .sec,.grid3 .sec{margin:0}
+  ul,ol{margin:8px 0 8px 20px;font-size:13px}li{margin:3px 0}
+  .zone{border-radius:var(--r);padding:20px;margin:10px 0}
+  .zone-green{background:#f0fdf4;border:2px solid #86efac}
+  .zone-dark{background:#1e293b;color:#e2e8f0;border:2px solid #475569}
+  .zone-red{background:#fef2f2;border:2px solid #fca5a5}
+  .zone-gray{background:#f8fafc;border:2px solid #cbd5e1}
+  .zone h4{color:inherit;margin-top:0}
+  .pipeline{display:flex;gap:0;margin:16px 0;overflow-x:auto}
+  .pipe{flex:1;min-width:100px;text-align:center;padding:14px 8px;background:#fff;border:1px solid var(--b);position:relative}
+  .pipe:first-child{border-radius:10px 0 0 10px}
+  .pipe:last-child{border-radius:0 10px 10px 0}
+  .pipe+.pipe{border-left:none}
+  .pipe .num{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin-bottom:6px}
+  .pipe h5{font-size:12px;font-weight:700;margin-bottom:3px}
+  .pipe p{font-size:10px;color:var(--m)}
+  .pipe.active{background:#eff6ff;border-color:var(--a)}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0;padding:16px;background:var(--s);border-radius:8px;border:1px solid var(--b)}
+  .flow-step{padding:8px 14px;background:#fff;border:1px solid var(--b);border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}
+  .flow-step.hl{background:var(--a);color:#fff;border-color:var(--a)}
+  .flow-arrow{color:var(--m);font-size:16px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Software Deployment Report</h1>
+    <p>Teller System — CI/CD Pipeline, Network Infrastructure, OpenShift Deployment Strategy</p>
+    <div class="hero-meta">
+      <span>BOEC Technology Division</span>
+      <span>Version 1.0</span>
+      <span>April 2569</span>
+    </div>
+  </div>
+</div>
+
+<div class="c">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 1. NETWORK & INFRASTRUCTURE OVERVIEW -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>1. Network &amp; Infrastructure Overview</h2>
+<p class="desc">ระบบ Teller System ถูก deploy บน Red Hat OpenShift Container Platform ภายใน Organization Network ที่แบ่งเป็น 4 Zone ตามระดับความปลอดภัย โดยมี External Firewall และ Internal Firewall คั่นระหว่าง Zone</p>
+
+<h3>1.1 Network Zone Architecture</h3>
+
+<div class="zone zone-green">
+  <h4>DMZ Zone (Demilitarized Zone)</h4>
+  <table>
+    <thead><tr><th>Component</th><th>IP / Host</th><th>Port</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td>External Firewall</td><td>—</td><td>TCP 443</td><td>รับ traffic จาก Client ผ่าน HTTPS เท่านั้น</td></tr>
+      <tr><td>Ingress (API Gateway)</td><td>192.168.1.200</td><td>TCP 443</td><td>NGINX Ingress Controller — route traffic เข้า Internal Zone</td></tr>
+      <tr><td>Reverse Proxy</td><td>192.168.1.50</td><td>TCP 443</td><td>NGINX Reverse Proxy — SSL termination, load balancing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="zone-dark zone">
+  <h4 style="color:#60a5fa;">Internal Zone (OpenShift Cluster)</h4>
+  <table>
+    <thead><tr><th>Component</th><th>IP</th><th>Port</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td>Teller Frontend</td><td>192.168.10.10</td><td>TCP 80/443</td><td>React App (Nginx container)</td></tr>
+      <tr><td>Auth Service</td><td>192.168.10.15</td><td>TCP 3005</td><td>JWT Authentication</td></tr>
+      <tr><td>Transfer Service</td><td>192.168.10.11</td><td>TCP 3001</td><td>โอนเงิน + Idempotency + Outbox</td></tr>
+      <tr><td>Transaction Service</td><td>192.168.10.12</td><td>TCP 3002</td><td>ประวัติธุรกรรม + ยอดคงเหลือ</td></tr>
+      <tr><td>Reconciliation Service</td><td>192.168.10.13</td><td>TCP 3003</td><td>Outbox Worker + Reconcile</td></tr>
+      <tr><td>Notification Service</td><td>192.168.10.14</td><td>TCP 3004</td><td>Queue Consumer</td></tr>
+      <tr><td>Redis Cluster</td><td>192.168.10.20</td><td>TCP 6379</td><td>BullMQ + Cache + Lock</td></tr>
+      <tr><td>Kong API Gateway</td><td>192.168.10.30</td><td>TCP 8000</td><td>Internal API routing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="grid2">
+  <div class="zone zone-red">
+    <h4>Database Zone</h4>
+    <table>
+      <thead><tr><th>Component</th><th>Port</th></tr></thead>
+      <tbody>
+        <tr><td>MS SQL Server (Primary)</td><td>TCP 1433</td></tr>
+        <tr><td>MS SQL Server (DR / Always On)</td><td>TCP 1433</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;margin-top:8px;">Internal Firewall อนุญาตเฉพาะ TCP 1432-1433 จาก Internal Zone เท่านั้น</p>
+  </div>
+  <div class="zone zone-gray">
+    <h4>Security Zone</h4>
+    <table>
+      <thead><tr><th>Component</th><th>หน้าที่</th></tr></thead>
+      <tbody>
+        <tr><td>Grafana / Prometheus</td><td>Monitoring &amp; Alerting</td></tr>
+        <tr><td>SonarQube</td><td>Code Quality &amp; Coverage</td></tr>
+        <tr><td>Harbor Registry</td><td>Container Image Registry</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;margin-top:8px;">https://prometheus.teller.dso.bank.com<br>http://elk.teller.dso.bank.com</p>
+  </div>
+</div>
+
+<h3>1.2 Ingress &amp; Egress Traffic</h3>
+<div class="sec">
+  <h4>Ingress (เข้าระบบ)</h4>
+  <table>
+    <thead><tr><th>Source</th><th>URL</th><th>Port</th></tr></thead>
+    <tbody>
+      <tr><td>Teller Web Application</td><td><code>https://teller.system.bank.com:443</code></td><td>TCP 443</td></tr>
+      <tr><td>Teller API Service</td><td><code>https://api-gateway.bank.com:443/teller-api/transfers/*</code></td><td>TCP 443</td></tr>
+      <tr><td></td><td><code>https://api-gateway.bank.com:443/teller-api/transactions/*</code></td><td></td></tr>
+      <tr><td></td><td><code>https://api-gateway.bank.com:443/teller-api/balance/*</code></td><td></td></tr>
+      <tr><td></td><td><code>https://api-gateway.bank.com:443/teller-api/auth/*</code></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Egress (ออกจากระบบ)</h4>
+  <table>
+    <thead><tr><th>Destination</th><th>URL</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td>Core Banking</td><td><code>https://api-gateway.core.bank.com:443/corebank-api/transfer/*</code></td><td>Outbox Worker เรียก Core Banking API</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>1.3 Internal Service Communication</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Service</th><th>Port</th><th>IP</th></tr></thead>
+    <tbody>
+      <tr><td>Redis (BullMQ)</td><td>TCP 6379</td><td>192.168.10.20</td></tr>
+      <tr><td>Redis (Cache/Lock)</td><td>TCP 6379</td><td>192.168.10.20</td></tr>
+      <tr><td>SQL Server</td><td>TCP 1433</td><td>192.168.50.41 (Database Zone)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 2. CI/CD PIPELINE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>2. CI/CD Pipeline</h2>
+<p class="desc">ใช้ Jenkins เป็น CI/CD Orchestrator โดย Pipeline ประกอบด้วย 10 stages ตั้งแต่ Code Push จนถึง OWASP ZAP Scan บน OpenShift</p>
+
+<h3>2.1 Pipeline Stages</h3>
+<div class="pipeline">
+  <div class="pipe active"><div class="num" style="background:#3b82f6;">1</div><h5>GitHub</h5><p>Code Push</p></div>
+  <div class="pipe"><div class="num" style="background:#f59e0b;">2</div><h5>npm</h5><p>Build / Lint</p></div>
+  <div class="pipe active"><div class="num" style="background:#ef4444;">3</div><h5>GitLeak</h5><p>GitLeaks Scan<br>Secret Detection</p></div>
+  <div class="pipe"><div class="num" style="background:#8b5cf6;">4</div><h5>Trivy</h5><p>Vulnerability<br>Container Scan</p></div>
+  <div class="pipe active"><div class="num" style="background:#06b6d4;">5</div><h5>SonarQube</h5><p>Code Quality<br>Test Coverage</p></div>
+  <div class="pipe"><div class="num" style="background:#10b981;">6</div><h5>Playwright</h5><p>E2E Automate<br>Test</p></div>
+  <div class="pipe active"><div class="num" style="background:#ec4899;">7</div><h5>Harbor</h5><p>Image Push<br>Registry</p></div>
+  <div class="pipe"><div class="num" style="background:#dc2626;">8</div><h5>OpenShift</h5><p>Deploy<br>Cluster</p></div>
+  <div class="pipe active"><div class="num" style="background:#0f172a;">9</div><h5>OWASP ZAP</h5><p>DAST Scan<br>OpenShift</p></div>
+</div>
+
+<h3>2.2 Pipeline Detail — แต่ละ Stage</h3>
+
+<table>
+  <thead><tr><th style="width:40px">#</th><th>Stage</th><th>Tool</th><th>รายละเอียด</th><th>Fail Criteria</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Code Push</td>
+      <td>GitHub</td>
+      <td>Developer push code ไปยัง GitHub repository — trigger Jenkins webhook</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Build &amp; Lint</td>
+      <td>npm</td>
+      <td><code>npm ci</code> install dependencies, <code>npm run lint</code> ตรวจ ESLint rules, <code>tsc</code> compile TypeScript</td>
+      <td>Lint error หรือ compile error → pipeline fail</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>GitLeaks Scan</td>
+      <td>GitLeak</td>
+      <td>สแกนหา secrets, API keys, passwords ที่หลุดเข้า source code</td>
+      <td>พบ secret → pipeline fail ทันที</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Vulnerability &amp; Container Scan</td>
+      <td>Trivy</td>
+      <td>สแกน Docker image หา CVE vulnerabilities ใน OS packages และ npm dependencies</td>
+      <td>Critical/High CVE → pipeline fail</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Code Quality &amp; Test Coverage</td>
+      <td>SonarQube</td>
+      <td>วิเคราะห์ code quality (bugs, code smells, duplications) + ตรวจ test coverage ≥ 80%</td>
+      <td>Quality Gate failed หรือ coverage &lt; 80% → pipeline fail</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>E2E Automate Test</td>
+      <td>Playwright</td>
+      <td>รัน E2E tests ครอบคลุม critical paths: Login → Transfer → Transaction History → Balance</td>
+      <td>E2E test fail → pipeline fail</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Image Push</td>
+      <td>Harbor Registry</td>
+      <td>Build Docker image แต่ละ service → tag ด้วย build number → push ไป Harbor (private registry)</td>
+      <td>Push fail → pipeline fail</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Deploy to OpenShift</td>
+      <td>Helm + OpenShift</td>
+      <td>Helm upgrade --install แต่ละ service → Blue-Green deployment → Health check</td>
+      <td>Health check fail → auto rollback</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>OWASP ZAP Scan</td>
+      <td>OWASP ZAP</td>
+      <td>Dynamic Application Security Testing (DAST) — สแกน running application หา security vulnerabilities</td>
+      <td>High/Critical finding → แจ้ง Security Team</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.3 Jenkinsfile</h3>
+<div class="cmd">pipeline {
+  agent { label 'openshift-agent' }
+
+  environment {
+    REGISTRY     = 'harbor.internal.bank.com'
+    IMAGE_PREFIX = 'teller-system'
+    HELM_CHART   = './helm/teller-system'
+    SONAR_HOST   = 'https://sonarqube.internal.bank.com'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Install & Lint') {
+      steps {
+        sh 'npm ci'
+        sh 'npm run lint'
+      }
+    }
+
+    stage('GitLeaks Scan') {
+      steps {
+        sh 'gitleaks detect --source . --report-format json --report-path gitleaks-report.json'
+      }
+    }
+
+    stage('Unit Test + Coverage') {
+      steps {
+        sh 'npm run test:cov -- --ci --reporters=default --reporters=jest-junit'
+      }
+      post {
+        always {
+          junit '**/coverage/junit.xml'
+          publishHTML(target: [reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Coverage'])
+        }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        withSonarQubeEnv('SonarQube') {
+          sh """
+            sonar-scanner \
+              -Dsonar.projectKey=teller-system \
+              -Dsonar.sources=services/ \
+              -Dsonar.tests=services/ \
+              -Dsonar.test.inclusions=**/*.spec.ts \
+              -Dsonar.javascript.lcov.reportPaths=**/coverage/lcov.info \
+              -Dsonar.qualitygate.wait=true
+          """
+        }
+      }
+    }
+
+    stage('Docker Build & Trivy Scan') {
+      steps {
+        script {
+          def services = ['auth-service','transfer-service','transaction-service',
+                          'reconciliation-service','notification-service','frontend']
+          for (svc in services) {
+            sh "docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${svc}:${BUILD_TAG} -f services/${svc}/Dockerfile ."
+            sh "trivy image --severity HIGH,CRITICAL --exit-code 1 ${REGISTRY}/${IMAGE_PREFIX}/${svc}:${BUILD_TAG}"
+            sh "docker push ${REGISTRY}/${IMAGE_PREFIX}/${svc}:${BUILD_TAG}"
+          }
+        }
+      }
+    }
+
+    stage('E2E Test (Playwright)') {
+      steps {
+        sh 'npx playwright test --reporter=html'
+      }
+      post {
+        always {
+          publishHTML(target: [reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'E2E'])
+        }
+      }
+    }
+
+    stage('Deploy Staging') {
+      steps {
+        sh """
+          helm upgrade --install teller-staging ${HELM_CHART} \
+            -n staging \
+            --set global.image.tag=${BUILD_TAG} \
+            --set global.image.registry=${REGISTRY}/${IMAGE_PREFIX} \
+            -f ${HELM_CHART}/values-staging.yaml \
+            --wait --timeout 5m
+        """
+      }
+    }
+
+    stage('OWASP ZAP Scan') {
+      steps {
+        sh """
+          zap-cli quick-scan --self-contained \
+            --start-options '-config api.disablekey=true' \
+            https://teller-staging.internal.bank.com
+        """
+      }
+      post {
+        always {
+          publishHTML(target: [reportDir: '.', reportFiles: 'zap-report.html', reportName: 'OWASP ZAP'])
+        }
+      }
+    }
+
+    stage('Deploy Production') {
+      when { branch 'main' }
+      steps {
+        input message: 'Deploy to Production?', submitter: 'tech-lead,devops'
+        sh """
+          helm upgrade --install teller-prod ${HELM_CHART} \
+            -n production \
+            --set global.image.tag=${BUILD_TAG} \
+            --set global.image.registry=${REGISTRY}/${IMAGE_PREFIX} \
+            -f ${HELM_CHART}/values-production.yaml \
+            --wait --timeout 10m
+        """
+      }
+    }
+  }
+
+  post {
+    failure {
+      slackSend(channel: '#teller-alerts', color: 'danger',
+        message: "BUILD FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${env.BUILD_URL}")
+    }
+    success {
+      slackSend(channel: '#teller-deploys', color: 'good',
+        message: "Deployed ${BUILD_TAG} to ${env.BRANCH_NAME}")
+    }
+  }
+}</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 3. OPENSHIFT DEPLOYMENT STRATEGY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>3. OpenShift Deployment Strategy</h2>
+
+<h3>3.1 Blue-Green Deployment</h3>
+<p class="desc">เลือกใช้ Blue-Green Deployment ผ่าน OpenShift Route เพราะเป็นระบบธนาคารที่ต้องการ Zero Downtime อย่างเคร่งครัด โดยเฉพาะในช่วง Business Hours ที่ Teller กำลังให้บริการลูกค้า</p>
+
+<div class="flow">
+  <div class="flow-step" style="background:#3b82f6;color:#fff;border-color:#3b82f6;">Blue (Current)</div>
+  <div class="flow-arrow">← Traffic</div>
+  <div class="flow-arrow" style="margin:0 16px;">|</div>
+  <div class="flow-step" style="background:#10b981;color:#fff;border-color:#10b981;">Green (New)</div>
+  <div class="flow-arrow">← Smoke Test</div>
+</div>
+
+<div class="sec">
+  <ol>
+    <li>Deploy เวอร์ชันใหม่เป็น Green โดยไม่รับ Traffic</li>
+    <li>รัน Smoke Test + Health Check บน Green</li>
+    <li>สลับ OpenShift Route ให้ชี้ไปที่ Green (ใช้เวลา &lt; 1 วินาที)</li>
+    <li>เก็บ Blue ไว้เป็น Rollback — หากมีปัญหาสลับกลับทันที</li>
+    <li>หลังยืนยันสำเร็จ (30 นาที) ลบ Blue เก่าออก</li>
+  </ol>
+</div>
+
+<div class="warn">
+  Business Hours Deploy: การ Deploy ในช่วงเวลาทำการต้องมั่นใจว่า Teller ทุกคนไม่ได้รับผลกระทบ ดังนั้น <code>maxUnavailable: 0</code> เสมอ และมี Manual Approval ก่อน Production Deploy
+</div>
+
+<h3>3.2 Helm Chart Configuration</h3>
+
+<h4>values-production.yaml</h4>
+<div class="cmd">replicaCount: 3
+
+image:
+  registry: harbor.internal.bank.com/teller-system
+  pullPolicy: Always
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0        # ห้าม Pod หายแม้แต่ตัวเดียว
+    maxSurge: 1              # สร้าง Pod ใหม่ 1 ตัวก่อน ค่อยลบเก่า
+
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 3000
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready      # ตรวจ DB + Redis connection
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+resources:
+  requests: { cpu: "250m", memory: "512Mi" }
+  limits:   { cpu: "1000m", memory: "1Gi" }
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilization: 70</div>
+
+<h3>3.3 Liveness &amp; Readiness Probes</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Probe</th><th>Endpoint</th><th>ตรวจอะไร</th><th>Config</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge bg">Liveness</span></td>
+        <td><code>GET /health/live</code></td>
+        <td>Process ยังทำงานอยู่หรือไม่ — ถ้า fail Kubernetes จะ restart Pod</td>
+        <td>initialDelay: 15s, period: 10s, failureThreshold: 3</td>
+      </tr>
+      <tr>
+        <td><span class="badge bb">Readiness</span></td>
+        <td><code>GET /health/ready</code></td>
+        <td>DB connection + Redis connection พร้อมรับ traffic หรือไม่ — ถ้า fail จะถูกถอดออกจาก Service</td>
+        <td>initialDelay: 10s, period: 5s, failureThreshold: 3</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>3.4 Per-Service Deployment</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Service</th><th>Replicas (Prod)</th><th>CPU Request</th><th>Memory</th><th>HPA Max</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend (Nginx)</td><td>2</td><td>100m</td><td>128Mi</td><td>5</td></tr>
+      <tr><td>Auth Service</td><td>2</td><td>250m</td><td>512Mi</td><td>5</td></tr>
+      <tr><td>Transfer Service</td><td>3</td><td>250m</td><td>512Mi</td><td>10</td></tr>
+      <tr><td>Transaction Service</td><td>3</td><td>250m</td><td>512Mi</td><td>10</td></tr>
+      <tr><td>Reconciliation Service</td><td>1</td><td>250m</td><td>512Mi</td><td>3</td></tr>
+      <tr><td>Notification Service</td><td>2</td><td>250m</td><td>256Mi</td><td>5</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 4. SECURITY SCANNING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>4. Security Scanning Strategy</h2>
+<p class="desc">Pipeline มี Security Scan 4 ชั้น ครอบคลุมตั้งแต่ source code จนถึง running application</p>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>ชั้น</th><th>Tool</th><th>ประเภท</th><th>สแกนอะไร</th><th>เมื่อไหร่</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge bb">1</span></td>
+        <td>GitLeaks</td>
+        <td>Secret Detection</td>
+        <td>API keys, passwords, tokens ที่หลุดเข้า source code</td>
+        <td>ทุก commit (Stage 3)</td>
+      </tr>
+      <tr>
+        <td><span class="badge bp">2</span></td>
+        <td>SonarQube</td>
+        <td>SAST (Static)</td>
+        <td>Bugs, code smells, security hotspots, test coverage</td>
+        <td>ทุก build (Stage 5)</td>
+      </tr>
+      <tr>
+        <td><span class="badge by">3</span></td>
+        <td>Trivy</td>
+        <td>Container Scan</td>
+        <td>CVE vulnerabilities ใน OS packages, npm dependencies, Docker image</td>
+        <td>ทุก Docker build (Stage 4)</td>
+      </tr>
+      <tr>
+        <td><span class="badge br">4</span></td>
+        <td>OWASP ZAP</td>
+        <td>DAST (Dynamic)</td>
+        <td>XSS, SQL Injection, CSRF, security misconfig บน running application</td>
+        <td>หลัง deploy staging (Stage 9)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 5. DOCKER IMAGE MANAGEMENT -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>5. Docker Image Management (Harbor)</h2>
+
+<h3>5.1 Image Naming Convention</h3>
+<div class="cmd">harbor.internal.bank.com/teller-system/{service-name}:{build-tag}
+
+# ตัวอย่าง
+harbor.internal.bank.com/teller-system/auth-service:build-142
+harbor.internal.bank.com/teller-system/transfer-service:build-142
+harbor.internal.bank.com/teller-system/transaction-service:build-142
+harbor.internal.bank.com/teller-system/reconciliation-service:build-142
+harbor.internal.bank.com/teller-system/notification-service:build-142
+harbor.internal.bank.com/teller-system/frontend:build-142</div>
+
+<h3>5.2 Image Lifecycle</h3>
+<div class="sec">
+  <ul>
+    <li>ทุก image ถูก scan ด้วย Trivy ก่อน push ไป Harbor</li>
+    <li>Harbor มี vulnerability scanning ซ้ำอีกชั้น</li>
+    <li>Image retention policy: เก็บ 30 builds ล่าสุด, ลบ image ที่เก่ากว่า 90 วัน</li>
+    <li>Production image ถูก tag เพิ่มเป็น <code>:latest</code> และ <code>:v1.x.x</code> (semantic version)</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 6. ROLLBACK STRATEGY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>6. Rollback Strategy</h2>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>สถานการณ์</th><th>วิธี Rollback</th><th>เวลา</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Health check fail หลัง deploy</td>
+        <td>Helm auto-rollback (<code>--wait --timeout</code>) — Kubernetes จะ rollback อัตโนมัติ</td>
+        <td>&lt; 1 นาที</td>
+      </tr>
+      <tr>
+        <td>Bug พบหลัง deploy สำเร็จ</td>
+        <td>Blue-Green: สลับ OpenShift Route กลับไป Blue (เวอร์ชันเก่า)</td>
+        <td>&lt; 1 วินาที</td>
+      </tr>
+      <tr>
+        <td>ต้อง rollback ไป version เก่ากว่า</td>
+        <td><code>helm rollback teller-prod {revision}</code></td>
+        <td>&lt; 2 นาที</td>
+      </tr>
+      <tr>
+        <td>Database migration ผิดพลาด</td>
+        <td>รัน reverse migration script + rollback Helm</td>
+        <td>5-10 นาที</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 7. ENVIRONMENT CONFIGURATION -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>7. Environment Configuration</h2>
+
+<h3>7.1 Environment Variables (OpenShift Secrets)</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Variable</th><th>ตัวอย่าง</th><th>เก็บที่</th></tr></thead>
+    <tbody>
+      <tr><td><code>DB_HOST</code></td><td>192.168.50.41</td><td>ConfigMap</td></tr>
+      <tr><td><code>DB_PASSWORD</code></td><td>***</td><td>OpenShift Secret (encrypted)</td></tr>
+      <tr><td><code>REDIS_HOST</code></td><td>192.168.10.20</td><td>ConfigMap</td></tr>
+      <tr><td><code>REDIS_PASSWORD</code></td><td>***</td><td>OpenShift Secret</td></tr>
+      <tr><td><code>JWT_SECRET</code></td><td>***</td><td>OpenShift Secret</td></tr>
+      <tr><td><code>AUTH_SERVICE_URL</code></td><td>http://auth-service:3005</td><td>ConfigMap</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>7.2 Environments</h3>
+<div class="grid3">
+  <div class="sec">
+    <h4>Development</h4>
+    <ul>
+      <li>Namespace: <code>dev</code></li>
+      <li>Replicas: 1</li>
+      <li>Auto-deploy on push</li>
+    </ul>
+  </div>
+  <div class="sec">
+    <h4>Staging</h4>
+    <ul>
+      <li>Namespace: <code>staging</code></li>
+      <li>Replicas: 2</li>
+      <li>Auto-deploy + E2E + ZAP</li>
+    </ul>
+  </div>
+  <div class="sec">
+    <h4>Production</h4>
+    <ul>
+      <li>Namespace: <code>production</code></li>
+      <li>Replicas: 3 (HPA max 10)</li>
+      <li>Manual approval required</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 8. MONITORING POST-DEPLOY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>8. Post-Deployment Monitoring</h2>
+
+<div class="sec">
+  <p>หลัง deploy production ทีม DevOps ต้อง monitor 30 นาทีแรก:</p>
+  <table>
+    <thead><tr><th>Metric</th><th>Threshold</th><th>Action ถ้าเกิน</th></tr></thead>
+    <tbody>
+      <tr><td>Error Rate</td><td>&gt; 1% ใน 5 นาทีแรก</td><td>Rollback ทันที</td></tr>
+      <tr><td>p99 Latency</td><td>&gt; 2 วินาที</td><td>ตรวจสอบ + พิจารณา rollback</td></tr>
+      <tr><td>Pod Restart Count</td><td>&gt; 0</td><td>ตรวจ logs + rollback ถ้า crash loop</td></tr>
+      <tr><td>Outbox Pending</td><td>&gt; 50 เกิน 5 นาที</td><td>ตรวจ Core Banking connection</td></tr>
+      <tr><td>Redis Connection</td><td>fail</td><td>ตรวจ Redis cluster + fallback to DB</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px;">Dashboard: <code>https://prometheus.teller.dso.bank.com</code></p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 9. EXAM MAPPING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>9. ตอบโจทย์ข้อสอบ</h2>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>ข้อสอบ</th><th>หัวข้อ</th><th>ส่วนที่ตอบ</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge bb">Q2</span></td>
+        <td>SQL Server Always On Failover Handling</td>
+        <td>Section 3.3 — Readiness Probe ตรวจ DB connection, TypeORM retry config (connectRetryCount: 3, exponential backoff), failoverPartner config, connection pool (max:20, min:5)</td>
+      </tr>
+      <tr>
+        <td><span class="badge bc">Q6</span></td>
+        <td>Deploying on OpenShift during business hours</td>
+        <td>Section 3.1 — Blue-Green Deployment, maxUnavailable=0, Manual Approval, Liveness/Readiness Probes, HPA auto-scaling</td>
+      </tr>
+      <tr>
+        <td><span class="badge bp">Q5</span></td>
+        <td>Frontend Security (OWASP)</td>
+        <td>Section 4 — 4-layer security scanning: GitLeaks + SonarQube SAST + Trivy Container Scan + OWASP ZAP DAST</td>
+      </tr>
+      <tr>
+        <td><span class="badge bi">CI/CD</span></td>
+        <td>Jenkinsfile + Helm on OpenShift</td>
+        <td>Section 2.3 — Complete Jenkinsfile, Section 3.2 — Helm values-production.yaml</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+</body>
+</html>

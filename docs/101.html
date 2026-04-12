@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System 101 — คู่มือเริ่มต้นพัฒนา</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--p:#0f172a;--a:#3b82f6;--s:#f8fafc;--b:#e2e8f0;--t:#1e293b;--m:#64748b;--ok:#16a34a;--r:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--s);color:var(--t);line-height:1.8;font-size:14px}
+  .hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#1e40af 100%);color:#fff;padding:60px 40px 40px}
+  .hero-inner{max-width:960px;margin:0 auto}
+  .hero h1{font-size:30px;font-weight:700;margin-bottom:6px}
+  .hero p{color:rgba(255,255,255,.7);font-size:14px}
+  .c{max-width:960px;margin:0 auto;padding:0 24px 80px}
+  h2{font-size:22px;font-weight:700;margin:48px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--b);color:var(--p)}
+  h3{font-size:16px;font-weight:600;margin:28px 0 8px;color:var(--p)}
+  h4{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--m)}
+  p{margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:13px}
+  thead th{background:var(--p);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:12px}
+  thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--b);vertical-align:top}
+  tbody tr:hover{background:#f1f5f9}
+  .sec{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin:14px 0}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace}
+  .cmd{background:var(--p);color:#e2e8f0;padding:18px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.9;margin:10px 0;overflow-x:auto;white-space:pre}
+  .note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  .warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  .tip{background:#f0fdf4;border:1px solid #86efac;color:#065f46;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  ul,ol{margin:8px 0 8px 20px;font-size:13px}li{margin:4px 0}
+  .badge{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .bg{background:#d1fae5;color:#065f46}.bb{background:#dbeafe;color:#1d4ed8}.bp{background:#ede9fe;color:#5b21b6}.by{background:#fef3c7;color:#92400e}.br{background:#fef2f2;color:#dc2626}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0;padding:16px;background:var(--s);border-radius:8px;border:1px solid var(--b)}
+  .flow-step{padding:8px 14px;background:#fff;border:1px solid var(--b);border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}
+  .flow-step.hl{background:var(--a);color:#fff;border-color:var(--a)}
+  .flow-arrow{color:var(--m);font-size:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  .grid2 .sec{margin:0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Teller System 101</h1>
+    <p>คู่มือเริ่มต้นพัฒนาสำหรับนักพัฒนาที่ยังไม่คุ้นเคยกับ Tech Stack นี้</p>
+  </div>
+</div>
+
+<div class="c">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 1. WHAT IS THIS PROJECT -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>1. โปรเจกต์นี้คืออะไร?</h2>
+
+<p>Teller System เป็น <strong>ระบบสำหรับพนักงานหน้าเคาน์เตอร์ธนาคาร (Teller)</strong> ใช้สำหรับ:</p>
+<ul>
+  <li>เข้าสู่ระบบด้วย username/password</li>
+  <li>โอนเงินระหว่างบัญชี</li>
+  <li>ดูยอดคงเหลือ</li>
+  <li>ดูประวัติธุรกรรม</li>
+  <li>เปิดบัญชีใหม่</li>
+</ul>
+
+<p>ระบบถูกออกแบบเป็น <strong>Microservices</strong> — แทนที่จะเป็นโปรแกรมก้อนเดียว ถูกแบ่งเป็นหลาย service เล็กๆ แต่ละตัวทำหน้าที่เฉพาะ สื่อสารกันผ่าน HTTP API และ Message Queue</p>
+
+<div class="flow">
+  <div class="flow-step hl">หน้าเว็บ (React)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Kong Gateway</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step hl">Backend Services (NestJS)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Database / Redis</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 2. TECH STACK EXPLAINED -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>2. Tech Stack อธิบายทีละตัว</h2>
+
+<h3>2.1 TypeScript</h3>
+<div class="sec">
+  <p>TypeScript คือ JavaScript ที่เพิ่ม <strong>ระบบ Type</strong> เข้ามา ช่วยจับ bug ตั้งแต่ตอนเขียนโค้ด ไม่ต้องรอรันแล้วค่อยเจอ error</p>
+<div class="cmd">// JavaScript ปกติ — ไม่รู้ว่า user มี field อะไร
+function greet(user) {
+  return "Hello " + user.name;
+}
+
+// TypeScript — บอกชัดเจนว่า user ต้องมี name
+interface User {
+  name: string;
+  role: string;
+}
+function greet(user: User): string {
+  return "Hello " + user.name;
+}</div>
+  <div class="tip">ทุกไฟล์ในโปรเจกต์นี้ลงท้ายด้วย <code>.ts</code> หรือ <code>.tsx</code> (TypeScript + React JSX)</div>
+</div>
+
+<h3>2.2 NestJS (Backend Framework)</h3>
+<div class="sec">
+  <p>NestJS คือ framework สำหรับสร้าง backend API ด้วย TypeScript มีโครงสร้างชัดเจน คล้าย Angular ใช้ <strong>Decorator pattern</strong> (@Controller, @Get, @Post) ทำให้อ่านง่าย</p>
+<div class="cmd">// ตัวอย่าง Controller — กำหนด API endpoint
+@Controller('balance')          // URL prefix: /balance
+export class BalanceController {
+
+  @Get(':accountId')            // GET /balance/1001000001
+  async getBalance(@Param('accountId') accountId: string) {
+    return this.balanceService.getBalance(accountId);
+  }
+}</div>
+  <h4>โครงสร้างหลักของ NestJS</h4>
+  <table>
+    <thead><tr><th>ส่วน</th><th>ไฟล์</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge bb">Module</span></td><td><code>*.module.ts</code></td><td>รวม Controller + Service เข้าด้วยกัน เหมือน "กล่อง" ที่จัดกลุ่ม</td></tr>
+      <tr><td><span class="badge bg">Controller</span></td><td><code>*.controller.ts</code></td><td>รับ HTTP request → เรียก Service → return response</td></tr>
+      <tr><td><span class="badge bp">Service</span></td><td><code>*.service.ts</code></td><td>Business logic ทั้งหมด — คำนวณ, query DB, เรียก API อื่น</td></tr>
+      <tr><td><span class="badge by">Entity</span></td><td><code>*.entity.ts</code></td><td>กำหนดโครงสร้างตาราง DB (mapping กับ TypeORM)</td></tr>
+      <tr><td><span class="badge br">DTO</span></td><td><code>*.dto.ts</code></td><td>กำหนดรูปแบบ request body + validation rules</td></tr>
+    </tbody>
+  </table>
+  <div class="note">ทุก backend service ในโปรเจกต์นี้ใช้ NestJS ทั้งหมด (auth, transfer, transaction, reconciliation, notification)</div>
+</div>
+
+<h3>2.3 React (Frontend)</h3>
+<div class="sec">
+  <p>React คือ library สำหรับสร้างหน้าเว็บ ใช้แนวคิด <strong>Component</strong> — แบ่งหน้าจอเป็นชิ้นเล็กๆ แต่ละชิ้นจัดการ state ของตัวเอง</p>
+<div class="cmd">// ตัวอย่าง Component — หน้า Login
+export default function LoginPage() {
+  const [username, setUsername] = useState('');   // state เก็บค่า input
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await login(username, password);              // เรียก API login
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input value={username} onChange={e => setUsername(e.target.value)} /&gt;
+      &lt;input type="password" value={password} onChange={e => setPassword(e.target.value)} /&gt;
+      &lt;button type="submit"&gt;เข้าสู่ระบบ&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</div>
+  <h4>ไฟล์สำคัญของ Frontend</h4>
+  <table>
+    <thead><tr><th>ไฟล์</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td><code>App.tsx</code></td><td>Component หลัก — ถ้ายังไม่ login แสดง LoginPage, ถ้า login แล้วแสดง sidebar + หน้าต่างๆ</td></tr>
+      <tr><td><code>auth/auth-context.tsx</code></td><td>จัดการ login/logout/token — เก็บ state ของ user ที่ login อยู่</td></tr>
+      <tr><td><code>api/client.ts</code></td><td>ฟังก์ชันเรียก API — แนบ token อัตโนมัติ, จัดการ error 401</td></tr>
+      <tr><td><code>pages/*.tsx</code></td><td>แต่ละหน้าจอ — Login, โอนเงิน, ประวัติ, ยอดคงเหลือ, เปิดบัญชี</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>2.4 MS SQL Server (Database)</h3>
+<div class="sec">
+  <p>ฐานข้อมูลหลักของระบบ เก็บข้อมูลบัญชี, ธุรกรรม, ผู้ใช้ ใช้ <strong>TypeORM</strong> เป็น ORM (Object-Relational Mapping) แทนที่จะเขียน SQL ตรงๆ</p>
+<div class="cmd">// แทนที่จะเขียน SQL:
+// SELECT * FROM accounts WHERE account_number = '1001000001'
+
+// ใช้ TypeORM แบบนี้:
+const account = await this.accountRepo.findOne({
+  where: { accountNumber: '1001000001' }
+});</div>
+  <h4>Entity คืออะไร?</h4>
+  <p>Entity คือ class ที่ map กับตาราง DB — แต่ละ property คือ column</p>
+<div class="cmd">@Entity('accounts')                    // map กับตาราง accounts
+export class Account {
+  @PrimaryGeneratedColumn('uuid')      // column id — auto-generate UUID
+  id: string;
+
+  @Column({ name: 'account_number' })  // column account_number
+  accountNumber: string;
+
+  @Column({ type: 'decimal' })         // column balance
+  balance: number;
+}</div>
+</div>
+
+<h3>2.5 Redis</h3>
+<div class="sec">
+  <p>Redis คือ in-memory database ที่เร็วมาก ในโปรเจกต์นี้ใช้ 3 อย่าง:</p>
+  <table>
+    <thead><tr><th>การใช้งาน</th><th>อธิบาย</th><th>ตัวอย่าง</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge bg">Cache</span></td><td>เก็บข้อมูลชั่วคราวเพื่อไม่ต้อง query DB ทุกครั้ง</td><td>ยอดคงเหลือ cache 30 วินาที</td></tr>
+      <tr><td><span class="badge bb">Message Queue</span></td><td>ส่งงานให้ service อื่นทำแบบ async (ผ่าน BullMQ)</td><td>โอนเงินเสร็จ → ส่ง notification</td></tr>
+      <tr><td><span class="badge bp">Distributed Lock</span></td><td>ป้องกัน 2 request ทำงานพร้อมกันบนข้อมูลเดียวกัน</td><td>Lock บัญชีตอนโอนเงิน</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>2.6 Kong API Gateway</h3>
+<div class="sec">
+  <p>Kong เป็น "ประตูหน้า" ของระบบ — ทุก request จาก Frontend ต้องผ่าน Kong ก่อน Kong จะ route ไปยัง service ที่ถูกต้อง</p>
+  <div class="flow">
+    <div class="flow-step">Frontend</div>
+    <div class="flow-arrow">→ /api/v1/transfers →</div>
+    <div class="flow-step hl">Kong (:8000)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Transfer Service (:3001)</div>
+  </div>
+  <p>Kong ยังทำหน้าที่:</p>
+  <ul>
+    <li><strong>Rate Limiting</strong> — จำกัดจำนวน request ต่อนาที ป้องกัน DDoS</li>
+    <li><strong>CORS</strong> — อนุญาตให้ Frontend เรียก API ข้าม domain</li>
+    <li><strong>Logging</strong> — บันทึก request ทุกตัว</li>
+  </ul>
+</div>
+
+<h3>2.7 Docker &amp; Kubernetes (GKE)</h3>
+<div class="sec">
+  <p><strong>Docker</strong> — "บรรจุ" โปรแกรมพร้อม dependencies ทั้งหมดลงใน container ทำให้รันได้เหมือนกันทุกเครื่อง</p>
+  <p><strong>Kubernetes (GKE)</strong> — จัดการ container หลายตัวบน cloud — auto-restart ถ้า crash, auto-scale ถ้า load สูง</p>
+<div class="cmd"># Dockerfile ของ auth-service (สรุป)
+FROM node:20-alpine AS builder     # ใช้ Node.js 20 เป็น base image
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps  # ติดตั้ง dependencies
+COPY . .
+RUN npm run build                   # compile TypeScript → JavaScript
+
+FROM node:20-alpine                 # image สุดท้ายเล็กลง (ไม่มี source code)
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+CMD ["node", "dist/src/main"]       # รัน compiled JavaScript</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 3. HOW SERVICES TALK TO EACH OTHER -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>3. Service สื่อสารกันอย่างไร</h2>
+
+<div class="sec">
+  <p>ระบบมี 2 วิธีหลักในการสื่อสารระหว่าง service:</p>
+
+  <h4>วิธีที่ 1: HTTP API (Synchronous)</h4>
+  <p>Service A เรียก Service B ตรงๆ แล้วรอ response — ใช้เมื่อต้องการผลลัพธ์ทันที</p>
+  <div class="flow">
+    <div class="flow-step">Transfer Service</div>
+    <div class="flow-arrow">→ HTTP GET →</div>
+    <div class="flow-step hl">Auth Service /validate</div>
+    <div class="flow-arrow">→ { valid: true } →</div>
+    <div class="flow-step">Transfer Service</div>
+  </div>
+  <p>ตัวอย่าง: ทุก service ตรวจ JWT token โดยเรียก Auth Service ผ่าน HTTP</p>
+
+  <h4>วิธีที่ 2: Message Queue (Asynchronous)</h4>
+  <p>Service A ส่ง "ข้อความ" ไปใน queue แล้วไม่ต้องรอ — Service B จะมาหยิบไปทำเมื่อพร้อม</p>
+  <div class="flow">
+    <div class="flow-step">Transfer Service</div>
+    <div class="flow-arrow">→ publish →</div>
+    <div class="flow-step hl">Redis Queue</div>
+    <div class="flow-arrow">→ consume →</div>
+    <div class="flow-step">Notification Service</div>
+  </div>
+  <p>ตัวอย่าง: โอนเงินเสร็จ → ส่ง event ไป notification-queue → Notification Service หยิบไปแจ้งเตือน</p>
+</div>
+
+<h3>3.1 ใครคุยกับใคร</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>จาก</th><th>ไป</th><th>วิธี</th><th>ทำอะไร</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>Kong</td><td>HTTP</td><td>ทุก API request ผ่าน Kong</td></tr>
+      <tr><td>Kong</td><td>ทุก Service</td><td>HTTP</td><td>Route request ไปยัง service ที่ถูกต้อง</td></tr>
+      <tr><td>ทุก Service</td><td>Auth Service</td><td>HTTP</td><td>ตรวจ JWT token ทุก request (ผ่าน Guard)</td></tr>
+      <tr><td>Transfer Service</td><td>Redis Queue</td><td>BullMQ</td><td>Publish event หลังโอนเงิน</td></tr>
+      <tr><td>Reconciliation Service</td><td>Redis Queue</td><td>BullMQ</td><td>Publish notification หลัง process outbox</td></tr>
+      <tr><td>Notification Service</td><td>Redis Queue</td><td>BullMQ</td><td>Consume events แล้วแจ้งเตือน</td></tr>
+      <tr><td>ทุก Backend</td><td>SQL Server</td><td>TypeORM</td><td>อ่าน/เขียนข้อมูล</td></tr>
+      <tr><td>Balance Service</td><td>Redis</td><td>ioredis</td><td>Cache ยอดคงเหลือ</td></tr>
+      <tr><td>Transfer Service</td><td>Redis</td><td>Redlock</td><td>Distributed Lock ตอนโอนเงิน</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 4. WALKTHROUGH: TRANSFER FLOW -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>4. Walkthrough: เมื่อ Teller กดโอนเงิน เกิดอะไรขึ้น?</h2>
+
+<div class="sec">
+  <p>สมมติ Teller กดโอนเงิน 1,000 บาท จากบัญชี A ไปบัญชี B:</p>
+
+  <h4>ขั้นตอนที่ 1: Frontend ส่ง Request</h4>
+<div class="cmd">// TransferPage.tsx
+const idempotencyKey = uuidv4();  // สร้าง UUID เช่น "a1b2c3d4-..."
+api.transfer({
+  fromAccount: "1001000001",
+  toAccount: "1001000002",
+  amount: 1000,
+  currency: "THB"
+}, idempotencyKey);
+
+// ส่ง HTTP POST ไปที่:
+// POST /api/v1/transfers
+// Headers: Authorization: Bearer eyJ..., x-idempotency-key: a1b2c3d4-...</div>
+
+  <h4>ขั้นตอนที่ 2: Kong Gateway รับ Request</h4>
+  <p>Kong ดู path <code>/api/v1/transfers</code> → route ไปที่ <code>transfer-service:3001</code></p>
+
+  <h4>ขั้นตอนที่ 3: JWT Guard ตรวจ Token</h4>
+<div class="cmd">// jwt-auth.guard.ts
+// 1. ดึง token จาก header "Authorization: Bearer eyJ..."
+// 2. เรียก Auth Service: GET http://auth-service:3005/api/v1/auth/validate
+// 3. Auth Service verify JWT → return { valid: true, payload: { sub, username, role } }
+// 4. ถ้า valid → ปล่อยผ่าน, ถ้าไม่ → return 401</div>
+
+  <h4>ขั้นตอนที่ 4: Transfer Controller รับ Request</h4>
+<div class="cmd">// transfer.controller.ts
+@Post()
+async createTransfer(
+  @Body() dto: CreateTransferDto,                    // { fromAccount, toAccount, amount, currency }
+  @Headers('x-idempotency-key') idempotencyKey,      // UUID จาก Frontend
+) {
+  return this.transferService.executeTransfer(dto, idempotencyKey);
+}</div>
+
+  <h4>ขั้นตอนที่ 5: Transfer Service ทำงาน (หัวใจของระบบ)</h4>
+<div class="cmd">// transfer.service.ts — executeTransfer()
+
+// 5.1 ตรวจ Idempotency — เคยทำรายการนี้แล้วหรือยัง?
+const existing = await this.idemRepo.findOne({ where: { idempotencyKey } });
+if (existing) return JSON.parse(existing.response);  // ถ้าเคย → return ผลเดิม
+
+// 5.2 Acquire Distributed Lock — ล็อคบัญชีต้นทาง
+const lock = await this.lockService.acquire(`lock:account:${dto.fromAccount}`, 5000);
+
+try {
+  // 5.3 DB Transaction — ทำทุกอย่างใน 1 transaction (ถ้า fail จะ rollback ทั้งหมด)
+  const result = await this.dataSource.transaction(async (manager) => {
+
+    // 5.3.1 Pessimistic Lock — ล็อค row ของบัญชีใน DB
+    const account = await manager.createQueryBuilder(Account, 'a')
+      .setLock('pessimistic_write')
+      .where('a.account_number = :num', { num: dto.fromAccount })
+      .getOne();
+
+    // 5.3.2 ตรวจยอดเงิน
+    if (account.balance < dto.amount) throw new Error('Insufficient balance');
+
+    // 5.3.3 หักเงินบัญชีต้นทาง
+    await manager.update(Account, ..., { balance: () => `balance - ${dto.amount}` });
+
+    // 5.3.4 สร้าง transaction record (status: PENDING)
+    const tx = manager.create(Transaction, { status: 'PENDING', ... });
+    await manager.save(tx);
+
+    // 5.3.5 เขียน Outbox Message (ใน transaction เดียวกัน!)
+    const outbox = manager.create(OutboxMessage, { status: 'PENDING', ... });
+    await manager.save(outbox);
+
+    return { transactionId: tx.id, status: 'PENDING' };
+  });
+
+  // 5.4 บันทึก Idempotency Key
+  await this.idemRepo.save({ idempotencyKey, response: JSON.stringify(result) });
+
+  // 5.5 Publish event ไป Message Queue
+  await this.transferProducer.publishTransferInitiated(result.transactionRef, dto);
+
+  return result;  // { transactionId, transactionRef, status: "PENDING" }
+} finally {
+  await this.lockService.release(lock);  // 5.6 ปล่อย Lock
+}</div>
+
+  <h4>ขั้นตอนที่ 6: Outbox Worker ทำงาน (ทุก 5 วินาที)</h4>
+<div class="cmd">// outbox.worker.ts — processOutbox() ทำงานทุก 5 วินาที
+
+// 6.1 อ่าน outbox messages ที่ status = PENDING
+const messages = await this.outboxRepo.find({ where: { status: 'PENDING' } });
+
+for (const msg of messages) {
+  // 6.2 เรียก Core Banking API (จำลอง)
+  const result = await this.callCoreBanking(payload);
+
+  if (result.success) {
+    // 6.3 เติมเงินบัญชีปลายทาง
+    await this.accountRepo.update(..., { balance: () => `balance + ${amount}` });
+
+    // 6.4 Update transaction status → SUCCESS
+    await this.txRepo.update({ transactionRef }, { status: 'SUCCESS' });
+
+    // 6.5 Update outbox → SENT
+    msg.status = 'SENT';
+  }
+
+  // 6.6 ส่ง notification
+  await this.notificationQueue.add('transfer.completed', { transactionRef, status: 'SUCCESS' });
+}</div>
+
+  <h4>ขั้นตอนที่ 7: Notification Service รับ Event</h4>
+<div class="cmd">// notification.processor.ts
+async process(job: Job) {
+  switch (job.name) {
+    case 'transfer.completed':
+      this.logger.log(`Transfer completed: ${job.data.transactionRef}`);
+      // TODO: ส่งแจ้งเตือนไป Teller UI
+      break;
+    case 'transfer.failed':
+      this.logger.warn(`Transfer failed: ${job.data.transactionRef}`);
+      break;
+  }
+}</div>
+
+  <div class="tip">สรุป: Frontend → Kong → Guard → Controller → Service (Lock → DB Transaction → Outbox) → Queue → Worker → Core Banking → Notification</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 5. HOW TO ADD NEW FEATURE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>5. วิธีเพิ่มฟีเจอร์ใหม่</h2>
+
+<h3>5.1 เพิ่ม API Endpoint ใหม่ (Backend)</h3>
+<div class="sec">
+  <p>สมมติต้องการเพิ่ม API <code>GET /api/v1/transfers/history</code> ใน Transfer Service:</p>
+
+  <h4>Step 1: เพิ่ม method ใน Service</h4>
+<div class="cmd">// transfer.service.ts
+async getHistory(accountId: string) {
+  return this.txRepo.find({
+    where: { fromAccount: accountId },
+    order: { createdAt: 'DESC' },
+    take: 50,
+  });
+}</div>
+
+  <h4>Step 2: เพิ่ม endpoint ใน Controller</h4>
+<div class="cmd">// transfer.controller.ts
+@Get('history')
+async getHistory(@Query('accountId') accountId: string) {
+  return this.transferService.getHistory(accountId);
+}</div>
+
+  <h4>Step 3: เพิ่ม route ใน Kong (ถ้าเป็น path ใหม่)</h4>
+  <p>ถ้า path อยู่ภายใต้ <code>/api/v1/transfers</code> ไม่ต้องเพิ่ม — Kong route เดิมครอบคลุมอยู่แล้ว</p>
+
+  <div class="note">ทุก endpoint ใน Transfer Service จะถูก protect ด้วย JWT Guard อัตโนมัติ (เพราะตั้ง global guard ใน app.module.ts) ถ้าต้องการให้เป็น public ใช้ <code>@Public()</code> decorator</div>
+</div>
+
+<h3>5.2 เพิ่มหน้าจอใหม่ (Frontend)</h3>
+<div class="sec">
+  <h4>Step 1: สร้าง Page Component</h4>
+<div class="cmd">// src/pages/NewPage.tsx
+export default function NewPage() {
+  return (
+    &lt;div className="page"&gt;
+      &lt;h2&gt;หน้าใหม่&lt;/h2&gt;
+      &lt;p&gt;เนื้อหา...&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}</div>
+
+  <h4>Step 2: เพิ่ม Route ใน App.tsx</h4>
+<div class="cmd">// App.tsx — ใน &lt;Routes&gt;
+&lt;Route path="/new-page" element={&lt;NewPage /&gt;} /&gt;</div>
+
+  <h4>Step 3: เพิ่ม Link ใน Sidebar</h4>
+<div class="cmd">// App.tsx — ใน &lt;ul className="nav-list"&gt;
+&lt;li&gt;
+  &lt;NavLink to="/new-page"&gt;หน้าใหม่&lt;/NavLink&gt;
+&lt;/li&gt;</div>
+
+  <h4>Step 4: เรียก API (ถ้าต้องการ)</h4>
+<div class="cmd">// api/client.ts — เพิ่ม function
+export const api = {
+  ...existingApis,
+  getNewData: () => request&lt;MyType&gt;('/new-endpoint'),
+};</div>
+</div>
+
+<h3>5.3 เพิ่มตาราง DB ใหม่</h3>
+<div class="sec">
+  <h4>Step 1: สร้าง Entity</h4>
+<div class="cmd">// entities/my-table.entity.ts
+@Entity('my_table')
+export class MyTable {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ name: 'created_at', type: 'datetime2', default: () => 'GETUTCDATE()' })
+  createdAt: Date;
+}</div>
+
+  <h4>Step 2: เพิ่มใน app.module.ts</h4>
+<div class="cmd">// app.module.ts
+TypeOrmModule.forRoot({
+  entities: [Account, Transaction, MyTable],  // เพิ่ม MyTable
+  ...
+})</div>
+
+  <h4>Step 3: เพิ่ม SQL ใน init.sql</h4>
+<div class="cmd">-- infrastructure/db/init.sql
+IF OBJECT_ID('my_table', 'U') IS NULL
+CREATE TABLE my_table (
+    id         UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    name       NVARCHAR(100)    NOT NULL,
+    created_at DATETIME2        NOT NULL DEFAULT GETUTCDATE()
+);
+GO</div>
+  <div class="warn">โปรเจกต์นี้ใช้ <code>synchronize: false</code> — TypeORM จะไม่สร้างตารางให้อัตโนมัติ ต้องสร้างเองใน SQL</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 6. LOCAL DEVELOPMENT -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>6. วิธีรันโปรเจกต์บนเครื่องตัวเอง</h2>
+
+<div class="sec">
+  <h4>สิ่งที่ต้องติดตั้งก่อน</h4>
+  <ul>
+    <li><strong>Node.js 20+</strong> — <a href="https://nodejs.org">nodejs.org</a></li>
+    <li><strong>Docker Desktop</strong> — <a href="https://docker.com">docker.com</a></li>
+    <li><strong>Git</strong></li>
+  </ul>
+
+  <h4>Step 1: Clone โปรเจกต์</h4>
+<div class="cmd">git clone https://github.com/t2b-cluster/teller-system.git
+cd teller-system</div>
+
+  <h4>Step 2: Start Infrastructure (Docker)</h4>
+<div class="cmd"># Start Redis, SQL Server, Kong
+docker compose up -d redis sqlserver kong-database
+
+# รอ 30 วินาทีให้ healthy
+sleep 30
+
+# Run Kong migration + start Kong
+docker compose up -d kong-migration
+sleep 15
+docker compose up -d kong
+
+# Initialize database (สร้างตาราง + seed data)
+docker compose up -d db-init</div>
+
+  <h4>Step 3: Install Dependencies (แต่ละ service)</h4>
+<div class="cmd">cd services/auth-service && npm install && cd ../..
+cd services/transfer-service && npm install && cd ../..
+cd services/transaction-service && npm install && cd ../..
+cd services/reconciliation-service && npm install && cd ../..
+cd services/notification-service && npm install && cd ../..
+cd services/frontend && npm install && cd ../..</div>
+
+  <h4>Step 4: Start Backend Services (เปิด 5 terminal)</h4>
+<div class="cmd"># Terminal 1
+cd services/auth-service && npx nest start
+
+# Terminal 2
+cd services/transfer-service && npx nest start
+
+# Terminal 3
+cd services/transaction-service && npx nest start
+
+# Terminal 4
+cd services/reconciliation-service && npx nest start
+
+# Terminal 5
+cd services/notification-service && npx nest start</div>
+
+  <h4>Step 5: Setup Kong Routes</h4>
+<div class="cmd">bash services/api-gateway/setup-kong.sh</div>
+
+  <h4>Step 6: Start Frontend</h4>
+<div class="cmd">cd services/frontend && npx vite</div>
+
+  <h4>Step 7: เปิดใช้งาน</h4>
+  <p>เปิด <code>http://localhost:5173</code> → Login ด้วย <code>teller01</code> / <code>teller123</code></p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 7. TESTING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>7. การทดสอบ (Testing)</h2>
+
+<h3>7.1 Unit Test</h3>
+<div class="sec">
+  <p>ใช้ <strong>Jest</strong> — test framework สำหรับ JavaScript/TypeScript ไฟล์ test ลงท้ายด้วย <code>.spec.ts</code></p>
+<div class="cmd"># รัน test ของ auth-service
+cd services/auth-service
+npx jest --coverage
+
+# รัน test ของ transfer-service
+cd services/transfer-service
+npx jest --coverage</div>
+  <p>ไฟล์ test อยู่ข้างๆ ไฟล์ที่ test เช่น:</p>
+  <ul>
+    <li><code>auth.service.ts</code> → <code>auth.service.spec.ts</code></li>
+    <li><code>transfer.service.ts</code> → <code>transfer.service.spec.ts</code></li>
+  </ul>
+  <h4>ตัวอย่าง Unit Test</h4>
+<div class="cmd">// auth.service.spec.ts
+describe('AuthService', () => {
+  it('should return tokens on valid login', async () => {
+    // Arrange — จำลอง user ใน DB
+    mockUserRepo.findOne.mockResolvedValue(mockUser);
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+
+    // Act — เรียก login
+    const result = await service.login({ username: 'teller01', password: 'teller123' });
+
+    // Assert — ตรวจผลลัพธ์
+    expect(result.accessToken).toBeDefined();
+    expect(result.user.username).toBe('teller01');
+  });
+});</div>
+</div>
+
+<h3>7.2 E2E Test (Playwright)</h3>
+<div class="sec">
+  <p>ใช้ <strong>Playwright</strong> — test ระบบทั้งหมดแบบ end-to-end ผ่าน HTTP API จริง</p>
+<div class="cmd"># ต้อง start ทุก service ก่อน แล้วรัน:
+cd e2e
+npm install
+npx playwright test</div>
+  <h4>ตัวอย่าง E2E Test</h4>
+<div class="cmd">// e2e-02-idempotency.spec.ts
+test('3 requests with same key return same transactionRef', async ({ request }) => {
+  const { accessToken } = await login(request);
+  const key = `idem-${Date.now()}`;
+
+  // ส่ง 3 request ด้วย idempotency key เดียวกัน
+  const r1 = await request.post('/api/v1/transfers', { headers: idemHeaders(accessToken, key), data });
+  const r2 = await request.post('/api/v1/transfers', { headers: idemHeaders(accessToken, key), data });
+  const r3 = await request.post('/api/v1/transfers', { headers: idemHeaders(accessToken, key), data });
+
+  // ทั้ง 3 ต้องได้ transactionRef เดียวกัน
+  expect(b1.transactionRef).toBe(b2.transactionRef);
+  expect(b2.transactionRef).toBe(b3.transactionRef);
+});</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 8. CI/CD PIPELINE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>8. CI/CD Pipeline (Jenkins)</h2>
+
+<div class="sec">
+  <p>เมื่อ push code ขึ้น GitHub → Jenkins จะ trigger pipeline อัตโนมัติ ทำทุกอย่างตั้งแต่ build จนถึง deploy:</p>
+  <div class="flow">
+    <div class="flow-step">git push</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Gitleaks</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Build</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Trivy</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Unit Test</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">SonarQube</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Push Image</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">E2E Test</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Deploy GKE</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">OWASP ZAP</div>
+  </div>
+  <table>
+    <thead><tr><th>Stage</th><th>ทำอะไร</th><th>ถ้า Fail</th></tr></thead>
+    <tbody>
+      <tr><td>Gitleaks</td><td>สแกนหา password/secret ที่หลุดเข้า code</td><td>แจ้งเตือน (ไม่หยุด pipeline)</td></tr>
+      <tr><td>Build Images</td><td>Docker build ทุก service ที่มีการเปลี่ยนแปลง</td><td>Pipeline หยุด</td></tr>
+      <tr><td>Trivy Scan</td><td>สแกน Docker image หา vulnerabilities</td><td>แจ้งเตือน</td></tr>
+      <tr><td>Unit Test</td><td>รัน Jest test + coverage report</td><td>Pipeline หยุด</td></tr>
+      <tr><td>SonarQube</td><td>วิเคราะห์ code quality, bugs, code smells</td><td>Pipeline หยุด</td></tr>
+      <tr><td>Push Images</td><td>Push image ไป Harbor + Artifact Registry</td><td>Pipeline หยุด</td></tr>
+      <tr><td>E2E Test</td><td>รัน Playwright test</td><td>แจ้งเตือน (ไม่หยุด)</td></tr>
+      <tr><td>Deploy to GKE</td><td>kubectl apply + rollout status</td><td>Pipeline หยุด</td></tr>
+      <tr><td>OWASP ZAP</td><td>สแกน security บน running app</td><td>แจ้งเตือน</td></tr>
+    </tbody>
+  </table>
+  <h4>Change Detection</h4>
+  <p>Pipeline จะ build เฉพาะ service ที่มีไฟล์เปลี่ยน เช่น ถ้าแก้แค่ <code>services/auth-service/</code> จะ build แค่ auth-service ไม่ build ทั้งหมด ถ้าแก้ <code>shared/</code> จะ build ทุก backend service</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 9. COMMON PATTERNS -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>9. Pattern ที่ใช้บ่อย (อธิบายแบบง่าย)</h2>
+
+<h3>9.1 Outbox Pattern — "เขียน DB กับส่ง Queue ต้องสำเร็จพร้อมกัน"</h3>
+<div class="sec">
+  <p><strong>ปัญหา:</strong> ถ้าหักเงินใน DB สำเร็จ แต่ส่ง message ไป queue ไม่สำเร็จ → เงินหายแต่ไม่มีใครรู้</p>
+  <p><strong>วิธีแก้:</strong> เขียน "outbox message" ลง DB ใน transaction เดียวกับการหักเงิน → มี worker มาอ่าน outbox แล้วส่งต่อ</p>
+  <p><strong>ผลลัพธ์:</strong> ถ้า DB commit สำเร็จ → outbox message อยู่ใน DB แน่นอน → worker จะส่งต่อได้เสมอ</p>
+</div>
+
+<h3>9.2 Idempotency — "กดซ้ำกี่ครั้งก็ได้ผลเหมือนกัน"</h3>
+<div class="sec">
+  <p><strong>ปัญหา:</strong> User กดปุ่มโอนเงิน 2 ครั้ง (double click) หรือ network retry → เงินถูกโอน 2 ครั้ง</p>
+  <p><strong>วิธีแก้:</strong> ทุก request ต้องมี "idempotency key" (UUID) ถ้า key ซ้ำ → return ผลลัพธ์เดิม ไม่ทำรายการซ้ำ</p>
+  <p><strong>ผลลัพธ์:</strong> ไม่ว่าจะส่ง request กี่ครั้งด้วย key เดียวกัน เงินจะถูกโอนแค่ครั้งเดียว</p>
+</div>
+
+<h3>9.3 Distributed Lock — "ห้ามทำพร้อมกัน"</h3>
+<div class="sec">
+  <p><strong>ปัญหา:</strong> 2 Teller โอนเงินจากบัญชีเดียวกันพร้อมกัน → ยอดเงินผิด (Race Condition)</p>
+  <p><strong>วิธีแก้:</strong> ก่อนโอนเงิน → "ล็อค" บัญชีใน Redis → ทำรายการ → ปล่อยล็อค คนที่ 2 ต้องรอ</p>
+  <p><strong>ผลลัพธ์:</strong> ทำรายการทีละคน ยอดเงินถูกต้องเสมอ</p>
+</div>
+
+<h3>9.4 Cache-Aside — "ถามของเก่าก่อน ถ้าไม่มีค่อยไปหาใหม่"</h3>
+<div class="sec">
+  <p><strong>ปัญหา:</strong> ทุกครั้งที่ดูยอดคงเหลือต้อง query DB → ช้า ถ้ามีคนดูเยอะ</p>
+  <p><strong>วิธีแก้:</strong> เก็บยอดคงเหลือใน Redis (เร็วกว่า DB 100 เท่า) → ถ้ามี return ทันที → ถ้าไม่มี query DB แล้วเก็บ cache 30 วินาที</p>
+  <p><strong>ผลลัพธ์:</strong> request ส่วนใหญ่ไม่ต้องไปถึง DB เลย</p>
+</div>
+
+<h3>9.5 JWT Authentication — "บัตรผ่านดิจิทัล"</h3>
+<div class="sec">
+  <p><strong>วิธีทำงาน:</strong></p>
+  <ol>
+    <li>Login สำเร็จ → server สร้าง "token" (ข้อความเข้ารหัส) ส่งให้ client</li>
+    <li>ทุก request หลังจากนั้น client แนบ token ไปด้วย</li>
+    <li>Server ตรวจ token → ถ้าถูกต้อง + ไม่หมดอายุ → ปล่อยผ่าน</li>
+    <li>Token หมดอายุ (30 นาที) → ใช้ refresh token ขอ token ใหม่</li>
+  </ol>
+  <p><strong>ข้อดี:</strong> Server ไม่ต้องเก็บ session — แค่ verify token ก็รู้ว่าเป็นใคร (Stateless)</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 10. TROUBLESHOOTING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>10. แก้ปัญหาที่พบบ่อย</h2>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>ปัญหา</th><th>สาเหตุ</th><th>วิธีแก้</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>npm install</code> error ERESOLVE</td>
+        <td>dependency version conflict</td>
+        <td>ใช้ <code>npm install --legacy-peer-deps</code></td>
+      </tr>
+      <tr>
+        <td>API return 401 Unauthorized</td>
+        <td>Token หมดอายุ หรือไม่ได้ส่ง token</td>
+        <td>Login ใหม่ หรือตรวจ header <code>Authorization: Bearer ...</code></td>
+      </tr>
+      <tr>
+        <td>Cannot connect to database</td>
+        <td>SQL Server ยังไม่ start หรือ password ผิด</td>
+        <td>ตรวจ <code>docker compose ps</code> ว่า sqlserver healthy หรือยัง</td>
+      </tr>
+      <tr>
+        <td>Redis connection refused</td>
+        <td>Redis ยังไม่ start</td>
+        <td><code>docker compose up -d redis</code></td>
+      </tr>
+      <tr>
+        <td>Kong return 404</td>
+        <td>ยังไม่ได้ setup routes</td>
+        <td>รัน <code>bash services/api-gateway/setup-kong.sh</code></td>
+      </tr>
+      <tr>
+        <td>Transfer return "Insufficient balance"</td>
+        <td>ยอดเงินไม่พอ</td>
+        <td>ตรวจยอดเงินก่อนโอน หรือใช้บัญชี 1001000001 (มี 1,000,000)</td>
+      </tr>
+      <tr>
+        <td>Docker build fail "Cannot find module"</td>
+        <td>dist/ ไม่มีไฟล์ หรือ CMD path ผิด</td>
+        <td>ตรวจ Dockerfile ว่า CMD ชี้ไป <code>dist/src/main</code></td>
+      </tr>
+      <tr>
+        <td>Pod CrashLoopBackOff บน GKE</td>
+        <td>App start แล้ว crash</td>
+        <td><code>kubectl logs -l app=SERVICE_NAME -n tellersystem-uat</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 11. GLOSSARY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>11. คำศัพท์ที่ควรรู้</h2>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>คำ</th><th>ความหมาย</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Microservices</strong></td><td>สถาปัตยกรรมที่แบ่งระบบเป็น service เล็กๆ แต่ละตัวทำหน้าที่เฉพาะ deploy แยกกันได้</td></tr>
+      <tr><td><strong>API Gateway</strong></td><td>"ประตูหน้า" ที่รับ request ทั้งหมดแล้ว route ไปยัง service ที่ถูกต้อง</td></tr>
+      <tr><td><strong>JWT</strong></td><td>JSON Web Token — ข้อความเข้ารหัสที่ใช้ยืนยันตัวตน</td></tr>
+      <tr><td><strong>ORM</strong></td><td>Object-Relational Mapping — เขียน code แทน SQL ตรงๆ</td></tr>
+      <tr><td><strong>Entity</strong></td><td>Class ที่ map กับตาราง DB</td></tr>
+      <tr><td><strong>DTO</strong></td><td>Data Transfer Object — กำหนดรูปแบบข้อมูลที่รับ/ส่ง</td></tr>
+      <tr><td><strong>Guard</strong></td><td>Middleware ที่ตรวจสอบ request ก่อนเข้า Controller (เช่น ตรวจ token)</td></tr>
+      <tr><td><strong>Decorator</strong></td><td>@ ข้างหน้า function/class เช่น @Controller, @Get — เพิ่มความสามารถให้ code</td></tr>
+      <tr><td><strong>Message Queue</strong></td><td>ระบบส่งข้อความระหว่าง service แบบ async (ไม่ต้องรอ)</td></tr>
+      <tr><td><strong>BullMQ</strong></td><td>Library สำหรับ message queue ที่ใช้ Redis เป็น backend</td></tr>
+      <tr><td><strong>Cron Job</strong></td><td>งานที่รันอัตโนมัติตามเวลาที่กำหนด (เช่น ทุก 5 วินาที)</td></tr>
+      <tr><td><strong>Pessimistic Lock</strong></td><td>ล็อค row ใน DB ไม่ให้คนอื่นแก้ไขจนกว่า transaction จะเสร็จ</td></tr>
+      <tr><td><strong>Optimistic Lock</strong></td><td>ใช้ version number ตรวจว่าข้อมูลถูกแก้ไขระหว่างทางหรือไม่</td></tr>
+      <tr><td><strong>Cache</strong></td><td>เก็บข้อมูลชั่วคราวในที่เร็วกว่า (Redis) เพื่อลด load บน DB</td></tr>
+      <tr><td><strong>TTL</strong></td><td>Time To Live — ระยะเวลาที่ cache/token มีอายุ</td></tr>
+      <tr><td><strong>Container</strong></td><td>"กล่อง" ที่บรรจุโปรแกรม + dependencies ทั้งหมด รันได้เหมือนกันทุกเครื่อง</td></tr>
+      <tr><td><strong>Kubernetes (K8s)</strong></td><td>ระบบจัดการ container หลายตัว — auto-restart, auto-scale, load balance</td></tr>
+      <tr><td><strong>Helm</strong></td><td>Package manager สำหรับ Kubernetes (เหมือน npm แต่สำหรับ K8s)</td></tr>
+      <tr><td><strong>CI/CD</strong></td><td>Continuous Integration / Continuous Deployment — build + test + deploy อัตโนมัติ</td></tr>
+      <tr><td><strong>Pipeline</strong></td><td>ลำดับขั้นตอนที่ทำอัตโนมัติ (build → test → deploy)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+</body>
+</html>

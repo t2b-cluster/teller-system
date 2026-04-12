@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System — Source Code Development Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--p:#0f172a;--a:#3b82f6;--s:#f8fafc;--b:#e2e8f0;--t:#1e293b;--m:#64748b;--ok:#16a34a;--w:#a16207;--d:#dc2626;--r:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--s);color:var(--t);line-height:1.7;font-size:14px}
+  .hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#1e40af 100%);color:#fff;padding:60px 40px 40px}
+  .hero-inner{max-width:1000px;margin:0 auto}
+  .hero h1{font-size:30px;font-weight:700;margin-bottom:6px}
+  .hero p{color:rgba(255,255,255,.7);font-size:14px}
+  .hero-meta{display:flex;gap:20px;margin-top:16px;font-size:12px;color:rgba(255,255,255,.5)}
+  .c{max-width:1000px;margin:0 auto;padding:0 24px 80px}
+  h2{font-size:22px;font-weight:700;margin:48px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--b);color:var(--p)}
+  h3{font-size:16px;font-weight:600;margin:28px 0 8px;color:var(--p)}
+  h4{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--m)}
+  p.desc{color:var(--t);margin-bottom:14px;line-height:1.8}
+  table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:13px}
+  thead th{background:var(--p);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:12px}
+  thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--b);vertical-align:top}
+  tbody tr:hover{background:#f1f5f9}
+  .badge{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .bg{background:#d1fae5;color:#065f46}.br{background:#fef2f2;color:#dc2626}.by{background:#fef3c7;color:#92400e}.bb{background:#dbeafe;color:#1d4ed8}.bp{background:#ede9fe;color:#5b21b6}
+  .sec{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin:14px 0}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace}
+  .cmd{background:var(--p);color:#e2e8f0;padding:18px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.9;margin:10px 0;overflow-x:auto;white-space:pre}
+  .note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+  ul,ol{margin:8px 0 8px 20px;font-size:13px}li{margin:3px 0}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0;padding:16px;background:var(--s);border-radius:8px;border:1px solid var(--b)}
+  .flow-step{padding:8px 14px;background:#fff;border:1px solid var(--b);border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}
+  .flow-step.hl{background:var(--a);color:#fff;border-color:var(--a)}
+  .flow-arrow{color:var(--m);font-size:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  .grid2 .sec{margin:0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Source Code Development Report</h1>
+    <p>Teller System — รายงานการพัฒนาระบบ Channel Application สำหรับพนักงานหน้าเคาน์เตอร์</p>
+    <div class="hero-meta">
+      <span>BOEC Technology Division</span>
+      <span>Version 1.0</span>
+      <span>April 2569</span>
+    </div>
+  </div>
+</div>
+
+<div class="c">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 1. SYSTEM OVERVIEW -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>1. ภาพรวมระบบ (System Overview)</h2>
+<p class="desc">Teller System เป็นระบบ Channel Application สำหรับพนักงานหน้าเคาน์เตอร์ธนาคาร (Teller) ใช้สำหรับทำธุรกรรมโอนเงิน ตรวจสอบยอดคงเหลือ ดูประวัติธุรกรรม และเปิดบัญชีใหม่ โดยเชื่อมต่อกับ Core Banking ผ่าน Outbox Pattern</p>
+
+<h3>1.1 Technology Stack</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>React + Vite + TypeScript</td><td>18.3 / 5.4</td><td>UI สำหรับ Teller</td></tr>
+      <tr><td>Backend</td><td>NestJS + TypeScript</td><td>10.3</td><td>Microservices API</td></tr>
+      <tr><td>Database</td><td>MS SQL Server</td><td>2022</td><td>Relational Database</td></tr>
+      <tr><td>Cache / Queue</td><td>Redis + BullMQ</td><td>7 / 5.1</td><td>Cache, Message Queue, Distributed Lock</td></tr>
+      <tr><td>API Gateway</td><td>Kong</td><td>3.6</td><td>Routing, Rate Limiting, CORS</td></tr>
+      <tr><td>ORM</td><td>TypeORM</td><td>0.3</td><td>Database Access Layer</td></tr>
+      <tr><td>Authentication</td><td>JWT + bcrypt</td><td>—</td><td>Token-based Authentication</td></tr>
+      <tr><td>Containerization</td><td>Docker + GKE</td><td>—</td><td>Container Orchestration</td></tr>
+      <tr><td>CI/CD</td><td>Jenkins</td><td>—</td><td>Automated Pipeline</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>1.2 Architecture Flow</h3>
+<div class="flow">
+  <div class="flow-step hl">React Frontend</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Kong Gateway</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step hl">NestJS Services</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Redis / SQL Server</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Core Banking</div>
+</div>
+
+<h3>1.3 Microservices</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Service</th><th>Port</th><th>หน้าที่</th><th>เทคนิคสำคัญ</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge bb">Auth Service</span></td><td>3005</td><td>JWT Authentication, Login/Logout/Refresh</td><td>bcrypt, JWT, Refresh Token Rotation</td></tr>
+      <tr><td><span class="badge bg">Transfer Service</span></td><td>3001</td><td>โอนเงิน</td><td>Distributed Lock, Idempotency, Outbox Pattern, Pessimistic Lock</td></tr>
+      <tr><td><span class="badge bp">Transaction Service</span></td><td>3002</td><td>ประวัติธุรกรรม, ยอดคงเหลือ, เปิดบัญชี</td><td>Cursor-based Pagination, Cache-Aside (Redis)</td></tr>
+      <tr><td><span class="badge by">Reconciliation Service</span></td><td>3003</td><td>Outbox Worker, Reconcile</td><td>Cron Job, Core Banking Integration, Auto-retry</td></tr>
+      <tr><td><span class="badge br">Notification Service</span></td><td>3004</td><td>Queue Consumer แจ้งเตือน</td><td>BullMQ Worker, Event-driven</td></tr>
+      <tr><td>Frontend</td><td>80</td><td>React SPA</td><td>React Query, DOMPurify (XSS), Virtual Scroll</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 2. PROJECT STRUCTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>2. โครงสร้างโปรเจกต์ (Project Structure)</h2>
+
+<div class="cmd">teller-system/
+├── services/
+│   ├── api-gateway/                    # Kong API Gateway Configuration
+│   │   ├── kong.yml                    # Declarative route config
+│   │   └── setup-kong.sh              # Shell script สำหรับ setup routes ผ่าน Admin API
+│   │
+│   ├── auth-service/                   # JWT Authentication Service (:3005)
+│   │   ├── src/
+│   │   │   ├── app.module.ts          # Root module — TypeORM + JWT config
+│   │   │   ├── main.ts               # Bootstrap — Helmet, CORS, GlobalPrefix /api/v1
+│   │   │   ├── auth/
+│   │   │   │   ├── auth.controller.ts # Endpoints: login, refresh, logout, validate
+│   │   │   │   ├── auth.service.ts    # Business logic — bcrypt compare, token generation
+│   │   │   │   ├── auth.dto.ts        # LoginDto, RefreshDto (class-validator)
+│   │   │   │   ├── auth.module.ts     # Feature module
+│   │   │   │   └── token.service.ts   # JWT sign/verify, refresh token CRUD
+│   │   │   └── entities/
+│   │   │       ├── user.entity.ts     # Users table mapping
+│   │   │       └── refresh-token.entity.ts # Refresh tokens table mapping
+│   │   ├── Dockerfile                 # Multi-stage build (node:20-alpine)
+│   │   └── package.json
+│   │
+│   ├── transfer-service/               # Transfer Service (:3001)
+│   │   ├── src/
+│   │   │   ├── app.module.ts          # TypeORM + BullMQ + JwtAuthGuard (global)
+│   │   │   ├── main.ts               # Bootstrap
+│   │   │   ├── transfer/
+│   │   │   │   ├── transfer.controller.ts  # POST /transfers, GET /transfers/:id/status
+│   │   │   │   ├── transfer.service.ts     # Core logic — lock, debit, outbox, idempotency
+│   │   │   │   ├── transfer.producer.ts    # BullMQ producer — publish to queues
+│   │   │   │   ├── transfer.dto.ts         # CreateTransferDto (validation)
+│   │   │   │   └── transfer.module.ts
+│   │   │   ├── health/
+│   │   │   │   └── health.controller.ts    # /health/live, /health/ready
+│   │   │   ├── infrastructure/
+│   │   │   │   └── redis-lock.service.ts   # Redlock distributed lock
+│   │   │   ├── guards/
+│   │   │   │   └── jwt-auth.guard.ts       # JWT validation via Auth Service
+│   │   │   └── entities/
+│   │   │       ├── account.entity.ts       # Accounts table (with @VersionColumn)
+│   │   │       ├── transaction.entity.ts   # Transactions table
+│   │   │       ├── outbox-message.entity.ts # Outbox messages table
+│   │   │       └── idempotency-key.entity.ts # Idempotency keys table
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   ├── transaction-service/            # Transaction Service (:3002)
+│   │   ├── src/
+│   │   │   ├── app.module.ts          # TypeORM + JwtAuthGuard (global)
+│   │   │   ├── transaction/
+│   │   │   │   ├── transaction.controller.ts # GET /transactions (cursor pagination)
+│   │   │   │   └── transaction.service.ts    # Query builder with filters
+│   │   │   ├── balance/
+│   │   │   │   ├── balance.controller.ts     # GET /balance/:accountId
+│   │   │   │   └── balance.service.ts        # Cache-Aside pattern (Redis 30s TTL)
+│   │   │   ├── account/
+│   │   │   │   ├── account.controller.ts     # POST /accounts, GET /accounts
+│   │   │   │   ├── account.service.ts        # Create account, list accounts
+│   │   │   │   └── account.dto.ts
+│   │   │   ├── guards/
+│   │   │   │   └── jwt-auth.guard.ts
+│   │   │   └── entities/
+│   │   │       ├── account.entity.ts
+│   │   │       └── transaction.entity.ts
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   ├── reconciliation-service/         # Reconciliation Service (:3003)
+│   │   ├── src/
+│   │   │   ├── app.module.ts          # TypeORM + BullMQ + ScheduleModule
+│   │   │   ├── outbox/
+│   │   │   │   ├── outbox.worker.ts   # Cron every 5s — process outbox → Core Banking
+│   │   │   │   └── outbox.module.ts
+│   │   │   ├── reconcile/
+│   │   │   │   ├── reconcile.service.ts    # Cron every 1min — check PENDING > 5min
+│   │   │   │   ├── reconcile.controller.ts # GET /reconciliation/logs
+│   │   │   │   └── reconcile.module.ts
+│   │   │   └── entities/
+│   │   │       ├── outbox-message.entity.ts
+│   │   │       ├── transaction.entity.ts
+│   │   │       ├── reconciliation-log.entity.ts
+│   │   │       └── account.entity.ts
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   ├── notification-service/           # Notification Service (:3004)
+│   │   ├── src/
+│   │   │   ├── app.module.ts          # BullMQ only (no DB)
+│   │   │   └── notification/
+│   │   │       ├── notification.processor.ts # BullMQ worker — process events
+│   │   │       ├── notification.controller.ts # GET /notifications/health
+│   │   │       └── notification.module.ts
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   └── frontend/                       # React Frontend (:80)
+│       ├── src/
+│       │   ├── App.tsx                # Router + AuthProvider wrapper
+│       │   ├── main.tsx               # React entry point
+│       │   ├── auth/
+│       │   │   └── auth-context.tsx   # AuthContext — login, logout, token refresh
+│       │   ├── api/
+│       │   │   └── client.ts          # API client — fetch wrapper + types
+│       │   ├── pages/
+│       │   │   ├── LoginPage.tsx      # หน้า Login
+│       │   │   ├── TransferPage.tsx   # หน้าโอนเงิน
+│       │   │   ├── TransactionHistoryPage.tsx # หน้าประวัติธุรกรรม
+│       │   │   ├── BalancePage.tsx     # หน้ายอดคงเหลือ
+│       │   │   └── AccountPage.tsx    # หน้าเปิดบัญชี
+│       │   └── styles/
+│       │       └── global.css
+│       ├── Dockerfile                 # Multi-stage: Vite build → Nginx
+│       ├── nginx.conf
+│       └── vite.config.ts
+│
+├── shared/                             # Shared Code (ใช้ร่วมกันทุก service)
+│   └── src/
+│       ├── index.ts                   # Re-export ทุก module
+│       ├── guards/
+│       │   └── jwt-auth.guard.ts      # JWT Guard — validate token via Auth Service
+│       ├── decorators/
+│       │   ├── public.decorator.ts    # @Public() — skip auth
+│       │   └── current-user.decorator.ts # @CurrentUser() — get user from request
+│       ├── dto/
+│       │   └── transfer.dto.ts        # Shared DTOs
+│       ├── config/
+│       │   └── redis.config.ts        # Redis connection config
+│       └── constants/
+│           └── queues.ts              # Queue name constants
+│
+├── infrastructure/
+│   └── db/
+│       ├── init.sql                   # Database schema + seed data
+│       └── seed-transactions.sql      # Load test data (2M records)
+│
+├── e2e/                                # End-to-End Tests
+│   ├── playwright.config.ts
+│   ├── run-all.sh                     # Shell-based E2E runner
+│   └── tests/
+│       ├── helpers.ts                 # Login helper, auth/idem headers
+│       ├── e2e-01-race-condition.spec.ts
+│       ├── e2e-02-idempotency.spec.ts
+│       ├── e2e-03-outbox.spec.ts
+│       ├── e2e-04-reconciliation.spec.ts
+│       ├── e2e-05-transaction-history.spec.ts
+│       ├── e2e-06-redis-cache.spec.ts
+│       ├── e2e-07-authentication.spec.ts
+│       ├── e2e-08-xss.spec.ts
+│       ├── e2e-09-health.spec.ts
+│       ├── e2e-10-rate-limit.spec.ts
+│       └── e2e-11-account.spec.ts
+│
+├── k8s/                                # Kubernetes Manifests
+│   ├── deployment.yaml                # All services deployment + ConfigMap + Secret
+│   ├── kong.yaml                      # Kong + migration + route setup
+│   ├── redis.yaml                     # Redis deployment
+│   └── ingress.yaml                   # GCE Ingress
+│
+├── Jenkinsfile                         # CI/CD Pipeline
+├── docker-compose.yml                  # Local development
+└── package.json                        # Root workspace</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 3. SCREEN FUNCTIONS & API MAPPING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>3. ฟังก์ชันตามหน้าจอ (Screen Functions &amp; API Mapping)</h2>
+
+<h3>3.1 หน้า Login (LoginPage.tsx)</h3>
+<div class="sec">
+  <p class="desc">หน้าเข้าสู่ระบบสำหรับพนักงาน Teller รองรับ username/password authentication ผ่าน JWT</p>
+  <table>
+    <thead><tr><th>Action</th><th>API Endpoint</th><th>Method</th><th>Service</th><th>Logic</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>เข้าสู่ระบบ</td>
+        <td><code>/api/v1/auth/login</code></td>
+        <td>POST</td>
+        <td>Auth Service</td>
+        <td>รับ username/password → ค้นหา user จาก DB → <code>bcrypt.compare()</code> เทียบ password hash → สร้าง JWT access token (30 นาที) + refresh token (7 วัน) → เก็บ refresh token ใน DB → return tokens + user info</td>
+      </tr>
+      <tr>
+        <td>Refresh Token</td>
+        <td><code>/api/v1/auth/refresh</code></td>
+        <td>POST</td>
+        <td>Auth Service</td>
+        <td>รับ refresh token → validate จาก DB (ไม่ revoked + ไม่หมดอายุ) → revoke token เก่า (Token Rotation) → สร้าง token ใหม่ทั้งคู่ → Frontend auto-refresh ก่อนหมดอายุ 2 นาที</td>
+      </tr>
+      <tr>
+        <td>ออกจากระบบ</td>
+        <td><code>/api/v1/auth/logout</code></td>
+        <td>POST</td>
+        <td>Auth Service</td>
+        <td>Revoke refresh token ใน DB → ลบ session จาก sessionStorage</td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>เทคนิคที่ใช้</h4>
+  <ul>
+    <li><strong>bcrypt</strong> — Hash password ด้วย salt rounds 10 ป้องกัน rainbow table attack</li>
+    <li><strong>JWT (JSON Web Token)</strong> — Stateless authentication, payload มี sub, username, role, branchCode</li>
+    <li><strong>Refresh Token Rotation</strong> — ทุกครั้งที่ refresh จะ revoke token เก่าทันที ป้องกัน token reuse</li>
+    <li><strong>sessionStorage</strong> — เก็บ token ฝั่ง client (ไม่ใช่ localStorage เพื่อความปลอดภัย — ปิด tab หาย)</li>
+  </ul>
+</div>
+
+<h3>3.2 หน้าโอนเงิน (TransferPage.tsx)</h3>
+<div class="sec">
+  <p class="desc">หน้าสำหรับพนักงาน Teller ทำรายการโอนเงินระหว่างบัญชี รองรับ Idempotency และป้องกัน Race Condition</p>
+  <table>
+    <thead><tr><th>Action</th><th>API Endpoint</th><th>Method</th><th>Service</th><th>Logic</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>โอนเงิน</td>
+        <td><code>/api/v1/transfers</code></td>
+        <td>POST</td>
+        <td>Transfer Service</td>
+        <td>
+          <strong>5 ขั้นตอนใน 1 request:</strong><br>
+          1. ตรวจ Idempotency Key จาก DB — ถ้ามีอยู่แล้ว return ผลลัพธ์เดิม<br>
+          2. Acquire Distributed Lock (Redlock) บนบัญชีต้นทาง — ป้องกัน Race Condition<br>
+          3. DB Transaction (Pessimistic Lock):<br>
+          &nbsp;&nbsp;- SELECT account WITH LOCK → ตรวจยอดเงิน<br>
+          &nbsp;&nbsp;- UPDATE balance (debit ต้นทาง)<br>
+          &nbsp;&nbsp;- INSERT transaction record (status: PENDING)<br>
+          &nbsp;&nbsp;- INSERT outbox message (same transaction)<br>
+          4. บันทึก Idempotency Key + response ใน DB (TTL 24 ชม.)<br>
+          5. Publish event ไป BullMQ (transfer-queue) สำหรับ async processing
+        </td>
+      </tr>
+      <tr>
+        <td>ดูสถานะ</td>
+        <td><code>/api/v1/transfers/:id/status</code></td>
+        <td>GET</td>
+        <td>Transfer Service</td>
+        <td>Query transaction by ID → return status (PENDING/SUCCESS/FAILED)</td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>เทคนิคที่ใช้</h4>
+  <ul>
+    <li><strong>Distributed Lock (Redlock)</strong> — ใช้ Redis lock บน key <code>lock:account:{accountNumber}</code> ป้องกัน 2 request โอนเงินจากบัญชีเดียวกันพร้อมกัน (Race Condition)</li>
+    <li><strong>Pessimistic Lock (SELECT FOR UPDATE)</strong> — Lock row ระดับ DB เพิ่มเติมจาก Distributed Lock เป็น defense-in-depth</li>
+    <li><strong>Idempotency Key</strong> — Client ส่ง <code>x-idempotency-key</code> header (UUID) ทุกครั้ง ถ้าส่ง key ซ้ำจะได้ผลลัพธ์เดิม ไม่ทำรายการซ้ำ</li>
+    <li><strong>Outbox Pattern</strong> — เขียน outbox message ใน DB transaction เดียวกับ debit เพื่อ guarantee consistency ระหว่าง DB กับ message queue</li>
+    <li><strong>DOMPurify</strong> — Sanitize input ฝั่ง Frontend ก่อนส่ง API ป้องกัน XSS</li>
+    <li><strong>UUID v4</strong> — Generate idempotency key ฝั่ง Frontend ด้วย <code>uuid</code> library</li>
+  </ul>
+</div>
+
+<h3>3.3 หน้าประวัติธุรกรรม (TransactionHistoryPage.tsx)</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Action</th><th>API Endpoint</th><th>Method</th><th>Service</th><th>Logic</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>ดูประวัติ</td>
+        <td><code>/api/v1/transactions?accountId=&amp;limit=50&amp;cursor=</code></td>
+        <td>GET</td>
+        <td>Transaction Service</td>
+        <td>Query Builder สร้าง dynamic WHERE clause ตาม filters (accountId, startDate, endDate, type, status) → ORDER BY created_at DESC → Cursor-based pagination (ใช้ created_at เป็น cursor) → return items + nextCursor + hasMore</td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>เทคนิคที่ใช้</h4>
+  <ul>
+    <li><strong>Cursor-based Pagination</strong> — ใช้ <code>created_at</code> เป็น cursor แทน OFFSET เพื่อ performance ที่ดีกว่ากับข้อมูลจำนวนมาก (2M+ records)</li>
+    <li><strong>Virtual Scroll (@tanstack/react-virtual)</strong> — Render เฉพาะ rows ที่เห็นบนหน้าจอ ไม่ render ทั้งหมด ลด DOM nodes</li>
+  </ul>
+</div>
+
+<h3>3.4 หน้ายอดคงเหลือ (BalancePage.tsx)</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Action</th><th>API Endpoint</th><th>Method</th><th>Service</th><th>Logic</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>ดูยอดคงเหลือ</td>
+        <td><code>/api/v1/balance/:accountId</code></td>
+        <td>GET</td>
+        <td>Transaction Service</td>
+        <td>
+          <strong>Cache-Aside Pattern:</strong><br>
+          1. ตรวจ Redis cache key <code>balance:{accountId}</code><br>
+          2. ถ้ามี → return จาก cache (source: "cache")<br>
+          3. ถ้าไม่มี → query จาก DB → เก็บ cache 30 วินาที → return (source: "database")
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>เทคนิคที่ใช้</h4>
+  <ul>
+    <li><strong>Cache-Aside (Lazy Loading)</strong> — อ่าน cache ก่อน ถ้า miss ค่อย query DB แล้วเขียน cache กลับ</li>
+    <li><strong>TTL 30 วินาที</strong> — Balance cache หมดอายุเร็วเพื่อให้ข้อมูลค่อนข้าง fresh</li>
+    <li><strong>Response บอก source</strong> — API return <code>source: "cache"</code> หรือ <code>"database"</code> เพื่อ debug/monitor</li>
+  </ul>
+</div>
+
+<h3>3.5 หน้าเปิดบัญชี (AccountPage.tsx)</h3>
+<div class="sec">
+  <table>
+    <thead><tr><th>Action</th><th>API Endpoint</th><th>Method</th><th>Service</th><th>Logic</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>เปิดบัญชีใหม่</td>
+        <td><code>/api/v1/accounts</code></td>
+        <td>POST</td>
+        <td>Transaction Service</td>
+        <td>ตรวจ duplicate account number → สร้าง account record ใน DB → return account info</td>
+      </tr>
+      <tr>
+        <td>ดูรายการบัญชี</td>
+        <td><code>/api/v1/accounts</code></td>
+        <td>GET</td>
+        <td>Transaction Service</td>
+        <td>Query ทุก account → ORDER BY account_number ASC</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 4. KEY DESIGN PATTERNS & TECHNIQUES -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>4. Design Patterns &amp; เทคนิคสำคัญ</h2>
+
+<h3>4.1 Outbox Pattern (Transactional Outbox)</h3>
+<div class="sec">
+  <p class="desc">ใช้เพื่อ guarantee consistency ระหว่าง Database กับ Message Queue — เขียน outbox message ใน DB transaction เดียวกับ business logic</p>
+  <div class="flow">
+    <div class="flow-step hl">Transfer Service</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">DB Transaction (debit + outbox)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Outbox Worker (Cron 5s)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Core Banking API</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Credit + Update Status</div>
+  </div>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>transfer-service/src/transfer/transfer.service.ts</code> — เขียน outbox ใน DB transaction</li>
+    <li><code>reconciliation-service/src/outbox/outbox.worker.ts</code> — Cron job อ่าน outbox → เรียก Core Banking → credit ปลายทาง → update status</li>
+    <li><code>transfer-service/src/entities/outbox-message.entity.ts</code> — Entity: id, aggregateType, eventType, payload, status, retryCount</li>
+  </ul>
+  <h4>Flow</h4>
+  <ol>
+    <li>Transfer Service: debit บัญชีต้นทาง + สร้าง transaction (PENDING) + เขียน outbox message — ทั้งหมดใน 1 DB transaction</li>
+    <li>Outbox Worker (ทุก 5 วินาที): อ่าน outbox ที่ status=PENDING → เรียก Core Banking API</li>
+    <li>ถ้าสำเร็จ: credit บัญชีปลายทาง + update transaction status=SUCCESS + outbox status=SENT</li>
+    <li>ถ้า fail: เพิ่ม retryCount ถ้าเกิน maxRetries (5) → status=FAILED + reverse debit</li>
+  </ol>
+</div>
+
+<h3>4.2 Idempotency Pattern</h3>
+<div class="sec">
+  <p class="desc">ป้องกันการทำรายการซ้ำเมื่อ client ส่ง request ซ้ำ (network retry, double click)</p>
+  <h4>วิธีการทำงาน</h4>
+  <ol>
+    <li>Client ส่ง <code>x-idempotency-key</code> header (UUID) ทุก request</li>
+    <li>Server ตรวจ key จาก <code>idempotency_keys</code> table</li>
+    <li>ถ้ามีอยู่แล้ว → return response เดิมที่เก็บไว้ (ไม่ทำรายการซ้ำ)</li>
+    <li>ถ้าไม่มี → ทำรายการปกติ → บันทึก key + response ใน DB (TTL 24 ชม.)</li>
+  </ol>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>transfer-service/src/transfer/transfer.service.ts</code> — ตรวจ + บันทึก idempotency key</li>
+    <li><code>transfer-service/src/entities/idempotency-key.entity.ts</code> — Entity: idempotencyKey (PK), response (JSON), expiresAt</li>
+    <li><code>frontend/src/pages/TransferPage.tsx</code> — Generate UUID ด้วย <code>uuid v4</code></li>
+  </ul>
+</div>
+
+<h3>4.3 Distributed Lock (Redlock)</h3>
+<div class="sec">
+  <p class="desc">ป้องกัน Race Condition เมื่อ 2 request โอนเงินจากบัญชีเดียวกันพร้อมกัน</p>
+  <h4>วิธีการทำงาน</h4>
+  <ol>
+    <li>ก่อนทำ transfer → acquire lock บน Redis key <code>lock:account:{accountNumber}</code> (TTL 5 วินาที)</li>
+    <li>ถ้า lock ได้ → ทำ DB transaction (pessimistic lock + debit)</li>
+    <li>เสร็จแล้ว → release lock</li>
+    <li>ถ้า lock ไม่ได้ → request ที่ 2 จะรอหรือ fail</li>
+  </ol>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>transfer-service/src/infrastructure/redis-lock.service.ts</code> — Redlock implementation</li>
+    <li><code>transfer-service/src/transfer/transfer.service.ts</code> — acquire/release lock รอบ transfer logic</li>
+  </ul>
+</div>
+
+<h3>4.4 JWT Authentication Flow</h3>
+<div class="sec">
+  <div class="flow">
+    <div class="flow-step">Client</div>
+    <div class="flow-arrow">→ Bearer Token →</div>
+    <div class="flow-step">Kong Gateway</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Backend Service</div>
+    <div class="flow-arrow">→ HTTP call →</div>
+    <div class="flow-step">Auth Service /validate</div>
+  </div>
+  <h4>วิธีการทำงาน</h4>
+  <ol>
+    <li>ทุก backend service มี <code>JwtAuthGuard</code> เป็น global guard</li>
+    <li>Guard ดึง Bearer token จาก Authorization header</li>
+    <li>เรียก Auth Service <code>GET /api/v1/auth/validate</code> พร้อม token</li>
+    <li>Auth Service verify JWT → return <code>{ valid: true, payload }</code></li>
+    <li>Guard attach <code>request.user</code> สำหรับ downstream use</li>
+    <li>Endpoint ที่มี <code>@Public()</code> decorator จะ skip guard</li>
+  </ol>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>shared/src/guards/jwt-auth.guard.ts</code> — Guard implementation</li>
+    <li><code>auth-service/src/auth/auth.controller.ts</code> — <code>/validate</code> endpoint</li>
+    <li><code>auth-service/src/auth/token.service.ts</code> — JWT sign/verify</li>
+  </ul>
+</div>
+
+<h3>4.5 Cache-Aside Pattern</h3>
+<div class="sec">
+  <p class="desc">ใช้ Redis เป็น cache layer สำหรับ balance query เพื่อลด load บน DB</p>
+  <div class="flow">
+    <div class="flow-step">Request</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step hl">Redis Cache</div>
+    <div class="flow-arrow">→ miss →</div>
+    <div class="flow-step">SQL Server</div>
+    <div class="flow-arrow">→ write back →</div>
+    <div class="flow-step hl">Redis (TTL 30s)</div>
+  </div>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>transaction-service/src/balance/balance.service.ts</code> — Cache-Aside implementation</li>
+  </ul>
+</div>
+
+<h3>4.6 Event-Driven Architecture (BullMQ)</h3>
+<div class="sec">
+  <p class="desc">ใช้ Redis-backed BullMQ สำหรับ async message processing ระหว่าง services</p>
+  <table>
+    <thead><tr><th>Queue</th><th>Producer</th><th>Consumer</th><th>Events</th></tr></thead>
+    <tbody>
+      <tr><td><code>transfer-queue</code></td><td>Transfer Service</td><td>Reconciliation Service</td><td>transfer.initiated</td></tr>
+      <tr><td><code>notification-queue</code></td><td>Transfer/Reconciliation</td><td>Notification Service</td><td>transfer.completed, transfer.failed, notify.alert</td></tr>
+    </tbody>
+  </table>
+  <h4>ไฟล์ที่เกี่ยวข้อง</h4>
+  <ul>
+    <li><code>transfer-service/src/transfer/transfer.producer.ts</code> — Publish events</li>
+    <li><code>notification-service/src/notification/notification.processor.ts</code> — Consume events</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 5. DATABASE SCHEMA -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>5. Database Schema</h2>
+<p class="desc">ใช้ MS SQL Server 2022 — schema ถูกสร้างจาก <code>infrastructure/db/init.sql</code></p>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>Table</th><th>คำอธิบาย</th><th>Key Columns</th><th>ใช้โดย Service</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>accounts</code></td>
+        <td>บัญชีลูกค้า</td>
+        <td>id (UUID PK), account_number (UNIQUE), balance (DECIMAL 18,2), version (Optimistic Lock)</td>
+        <td>Transfer, Transaction</td>
+      </tr>
+      <tr>
+        <td><code>transactions</code></td>
+        <td>ประวัติธุรกรรม</td>
+        <td>id (UUID PK), transaction_ref (UNIQUE), from_account, to_account, amount, status (PENDING/SUCCESS/FAILED)</td>
+        <td>Transfer, Transaction, Reconciliation</td>
+      </tr>
+      <tr>
+        <td><code>outbox_messages</code></td>
+        <td>Outbox Pattern messages</td>
+        <td>id (UUID PK), aggregate_type, event_type, payload (JSON), status, retry_count, max_retries</td>
+        <td>Transfer, Reconciliation</td>
+      </tr>
+      <tr>
+        <td><code>idempotency_keys</code></td>
+        <td>Idempotency key storage</td>
+        <td>idempotency_key (PK), response (JSON), expires_at</td>
+        <td>Transfer</td>
+      </tr>
+      <tr>
+        <td><code>reconciliation_logs</code></td>
+        <td>ผลการ Reconcile</td>
+        <td>id (UUID PK), transaction_ref, channel_status, core_banking_status, match_result (MATCH/MISMATCH)</td>
+        <td>Reconciliation</td>
+      </tr>
+      <tr>
+        <td><code>users</code></td>
+        <td>ผู้ใช้งาน (Teller)</td>
+        <td>id (UUID PK), username (UNIQUE), password_hash (bcrypt), role (TELLER/SUPERVISOR/ADMIN), branch_code</td>
+        <td>Auth</td>
+      </tr>
+      <tr>
+        <td><code>refresh_tokens</code></td>
+        <td>Refresh Token storage</td>
+        <td>id (UUID PK), user_id (FK→users), token, expires_at, revoked</td>
+        <td>Auth</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 6. API ENDPOINTS -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>6. API Endpoints (ทั้งหมด)</h2>
+
+<div class="sec">
+  <h4>Public Endpoints (ไม่ต้อง Token)</h4>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Service</th><th>คำอธิบาย</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/api/v1/auth/login</code></td><td>Auth</td><td>Login → return JWT tokens</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>Auth</td><td>Refresh token → new tokens</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/auth/logout</code></td><td>Auth</td><td>Revoke refresh token</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/auth/validate</code></td><td>Auth</td><td>Internal — validate JWT (ใช้โดย Guard)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/health/live</code></td><td>Transfer</td><td>Liveness probe</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/health/ready</code></td><td>Transfer</td><td>Readiness probe (check DB)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Protected Endpoints (ต้องมี Bearer Token)</h4>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Service</th><th>คำอธิบาย</th><th>Headers พิเศษ</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/api/v1/transfers</code></td><td>Transfer</td><td>โอนเงิน</td><td><code>x-idempotency-key</code> (required)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/transfers/:id/status</code></td><td>Transfer</td><td>ดูสถานะธุรกรรม</td><td>—</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/transactions</code></td><td>Transaction</td><td>ประวัติธุรกรรม (cursor pagination)</td><td>—</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/balance/:accountId</code></td><td>Transaction</td><td>ยอดคงเหลือ (cached)</td><td>—</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/accounts</code></td><td>Transaction</td><td>เปิดบัญชีใหม่</td><td>—</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/accounts</code></td><td>Transaction</td><td>รายการบัญชีทั้งหมด</td><td>—</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/reconciliation/logs</code></td><td>Reconciliation</td><td>ผลการ Reconcile</td><td>—</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/notifications/health</code></td><td>Notification</td><td>Health check</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 7. FRONTEND ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>7. Frontend Architecture</h2>
+
+<div class="sec">
+  <h4>Tech Stack</h4>
+  <ul>
+    <li><strong>React 18</strong> — UI Library</li>
+    <li><strong>Vite 5</strong> — Build tool (fast HMR)</li>
+    <li><strong>TypeScript</strong> — Type safety</li>
+    <li><strong>React Router 6</strong> — Client-side routing</li>
+    <li><strong>TanStack React Query</strong> — Server state management + mutation</li>
+    <li><strong>TanStack React Virtual</strong> — Virtual scroll สำหรับ transaction history</li>
+    <li><strong>DOMPurify</strong> — XSS prevention (sanitize user input)</li>
+    <li><strong>Nginx</strong> — Production static file server + reverse proxy</li>
+  </ul>
+
+  <h4>Key Files</h4>
+  <table>
+    <thead><tr><th>File</th><th>คำอธิบาย</th></tr></thead>
+    <tbody>
+      <tr><td><code>App.tsx</code></td><td>Root component — AuthProvider wrapper + Router (ถ้าไม่ login → LoginPage, ถ้า login → sidebar + routes)</td></tr>
+      <tr><td><code>auth/auth-context.tsx</code></td><td>React Context สำหรับ auth state — login(), logout(), getToken(), auto-refresh token</td></tr>
+      <tr><td><code>api/client.ts</code></td><td>Fetch wrapper — auto-attach Bearer token, handle 401 redirect, typed API functions</td></tr>
+      <tr><td><code>pages/LoginPage.tsx</code></td><td>Login form — username/password → call auth context login()</td></tr>
+      <tr><td><code>pages/TransferPage.tsx</code></td><td>Transfer form — DOMPurify sanitize + UUID idempotency key + React Query mutation</td></tr>
+      <tr><td><code>pages/TransactionHistoryPage.tsx</code></td><td>Transaction list — cursor pagination + virtual scroll</td></tr>
+      <tr><td><code>pages/BalancePage.tsx</code></td><td>Balance inquiry — show balance + cache source indicator</td></tr>
+      <tr><td><code>pages/AccountPage.tsx</code></td><td>Account management — create + list accounts</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Security (XSS Prevention)</h4>
+  <ul>
+    <li>ทุก user input ถูก sanitize ด้วย <code>DOMPurify.sanitize()</code> ก่อนส่ง API</li>
+    <li>React escape HTML by default ใน JSX</li>
+    <li>Helmet middleware บน backend set security headers</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 8. KONG API GATEWAY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>8. Kong API Gateway</h2>
+
+<div class="sec">
+  <p class="desc">Kong 3.6 ทำหน้าที่เป็น API Gateway กลาง — routing, rate limiting, CORS</p>
+  <table>
+    <thead><tr><th>Route</th><th>Upstream Service</th><th>Plugins</th></tr></thead>
+    <tbody>
+      <tr><td><code>/api/v1/auth/*</code></td><td>auth-service:3005</td><td>—</td></tr>
+      <tr><td><code>/api/v1/transfers/*</code></td><td>transfer-service:3001</td><td>rate-limiting (100/min), CORS</td></tr>
+      <tr><td><code>/api/v1/transactions/*</code></td><td>transaction-service:3002</td><td>rate-limiting (200/min)</td></tr>
+      <tr><td><code>/api/v1/balance/*</code></td><td>transaction-service:3002</td><td>rate-limiting (200/min)</td></tr>
+      <tr><td><code>/api/v1/accounts/*</code></td><td>transaction-service:3002</td><td>—</td></tr>
+      <tr><td><code>/api/v1/reconciliation/*</code></td><td>reconciliation-service:3003</td><td>—</td></tr>
+      <tr><td><code>/api/v1/notifications/*</code></td><td>notification-service:3004</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <h4>Global Plugins</h4>
+  <ul>
+    <li><strong>Rate Limiting</strong> — 100 requests/minute (local policy)</li>
+    <li><strong>Request Transformer</strong> — เพิ่ม <code>X-Request-ID</code> header ทุก request</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 9. E2E TESTING -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>9. E2E Testing (Playwright)</h2>
+
+<div class="sec">
+  <p class="desc">ใช้ Playwright สำหรับ E2E testing ครอบคลุม critical paths ทั้งหมด</p>
+  <table>
+    <thead><tr><th>Test File</th><th>Scenario</th><th>ทดสอบอะไร</th></tr></thead>
+    <tbody>
+      <tr><td><code>e2e-01-race-condition</code></td><td>Race Condition</td><td>2 concurrent transfers จากบัญชีเดียวกัน — balance ต้องไม่ติดลบ</td></tr>
+      <tr><td><code>e2e-02-idempotency</code></td><td>Idempotency</td><td>3 requests ด้วย key เดียวกัน — ต้องได้ transactionRef เดียวกัน</td></tr>
+      <tr><td><code>e2e-03-outbox</code></td><td>Outbox Pattern</td><td>Transfer PENDING → SUCCESS หลัง outbox worker process</td></tr>
+      <tr><td><code>e2e-04-reconciliation</code></td><td>Reconciliation</td><td>Reconciliation endpoint ตอบ 200 + return array</td></tr>
+      <tr><td><code>e2e-05-transaction-history</code></td><td>Transaction History</td><td>Query ประวัติธุรกรรม 2M records ด้วย cursor pagination</td></tr>
+      <tr><td><code>e2e-06-redis-cache</code></td><td>Redis Cache</td><td>Balance query ครั้งแรก source=database, ครั้งที่ 2 source=cache</td></tr>
+      <tr><td><code>e2e-07-authentication</code></td><td>Authentication</td><td>Login, valid token, no token, bad token, refresh, rotation, logout</td></tr>
+      <tr><td><code>e2e-08-xss</code></td><td>XSS Prevention</td><td>ส่ง <code>&lt;script&gt;</code> ใน description — ต้องไม่ถูก execute</td></tr>
+      <tr><td><code>e2e-09-health</code></td><td>Health Probes</td><td>Liveness + Readiness endpoints ตอบ 200</td></tr>
+      <tr><td><code>e2e-10-rate-limit</code></td><td>Rate Limiting</td><td>ส่ง request เกิน limit → ต้องได้ 429</td></tr>
+      <tr><td><code>e2e-11-account</code></td><td>Account</td><td>เปิดบัญชี + ดูรายการบัญชี</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 10. SHARED CODE -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>10. Shared Code Library</h2>
+
+<div class="sec">
+  <p class="desc">โฟลเดอร์ <code>shared/</code> เก็บ code ที่ใช้ร่วมกันทุก backend service</p>
+  <table>
+    <thead><tr><th>File</th><th>คำอธิบาย</th></tr></thead>
+    <tbody>
+      <tr><td><code>guards/jwt-auth.guard.ts</code></td><td>JWT Guard — validate token โดยเรียก Auth Service HTTP API ทุก request</td></tr>
+      <tr><td><code>decorators/public.decorator.ts</code></td><td><code>@Public()</code> decorator — mark endpoint ให้ skip JWT guard</td></tr>
+      <tr><td><code>decorators/current-user.decorator.ts</code></td><td><code>@CurrentUser()</code> decorator — ดึง user payload จาก request</td></tr>
+      <tr><td><code>dto/transfer.dto.ts</code></td><td>Shared DTOs สำหรับ transfer</td></tr>
+      <tr><td><code>config/redis.config.ts</code></td><td>Redis connection configuration</td></tr>
+      <tr><td><code>constants/queues.ts</code></td><td>Queue name constants (transfer-queue, notification-queue)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 11. SECURITY -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>11. Security Measures</h2>
+
+<div class="sec">
+  <table>
+    <thead><tr><th>ด้าน</th><th>เทคนิค</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>Authentication</td><td>JWT + bcrypt</td><td>Access token 30 นาที, Refresh token 7 วัน, Token Rotation</td></tr>
+      <tr><td>Authorization</td><td>Role-based (TELLER/SUPERVISOR/ADMIN)</td><td>JWT payload มี role, Guard ตรวจทุก request</td></tr>
+      <tr><td>XSS Prevention</td><td>DOMPurify + React escape + Helmet</td><td>Sanitize input ฝั่ง client, Security headers ฝั่ง server</td></tr>
+      <tr><td>SQL Injection</td><td>TypeORM parameterized queries</td><td>ใช้ QueryBuilder กับ parameters ไม่ concat string</td></tr>
+      <tr><td>Rate Limiting</td><td>Kong plugin</td><td>100 req/min สำหรับ transfer, 200 req/min สำหรับ query</td></tr>
+      <tr><td>CORS</td><td>Kong CORS plugin + NestJS enableCors()</td><td>Allow specific origins + methods + headers</td></tr>
+      <tr><td>Password Storage</td><td>bcrypt (salt rounds 10)</td><td>ไม่เก็บ plaintext password</td></tr>
+      <tr><td>Session</td><td>sessionStorage (not localStorage)</td><td>Token หายเมื่อปิด browser tab</td></tr>
+      <tr><td>Input Validation</td><td>class-validator + class-transformer</td><td>DTO validation ทุก endpoint (whitelist: true)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+</body>
+</html>

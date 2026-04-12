@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS API Specification — Documentation</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1>📚 GIS API Specification Documentation</h1>
+        <p>API Specification documents for all GIS External APIs</p>
+        <div class="meta-info">
+            <span class="meta-badge">📅 Version: 1.0</span>
+            <span class="meta-badge">📆 27 March 2026</span>
+        </div>
+    </div>
+</header>
+<div class="container">
+
+<!-- Authentication Service APIs -->
+<div class="section">
+    <div class="section-header">
+        <div class="section-number">🔐</div>
+        <div class="section-title">Authentication Service → GIS</div>
+    </div>
+    <p style="margin: 0 0 16px 0; color: #666;">APIs called from <code>authentication-service</code> to GIS for OA validation</p>
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Link</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>OA Inquiry</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/oaInquiry</code></td>
+            <td>OA validation and information inquiry for register OA in Dealer App</td>
+            <td><a href="api-specs/authentication/01-oaInquiry.html">View</a></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Partner App Service APIs -->
+<div class="section">
+    <div class="section-header">
+        <div class="section-number">📡</div>
+        <div class="section-title">Partner App → GIS</div>
+    </div>
+    <p style="margin: 0 0 16px 0; color: #666;">APIs called from <code>partner-app-service</code> to GIS for loan registration and processing</p>
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Link</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Check Duplicate Customer</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/checkDuplicateCustomer</code></td>
+            <td>Checks the active status of existing contracts (duplicate) based on email or mobile</td>
+            <td><a href="api-specs/partner-app/02-checkDuplicateCustomer.html">View</a></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Pre Approval (RL)</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/preApproval</code></td>
+            <td>Pre-approval for RL loan application</td>
+            <td><a href="api-specs/partner-app/03-preApproval.html">View</a></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Customer Info Send</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/customerInfoSend</code></td>
+            <td>Sends customer personal information for loan processing</td>
+            <td><a href="api-specs/partner-app/04-customerInfoSend.html">View</a></td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Employment Info Send</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/employmentInfoSend</code></td>
+            <td>Sends customer employment information for loan processing</td>
+            <td><a href="api-specs/partner-app/05-employmentInfoSend.html">View</a></td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Loan Application</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/loanApplication</code></td>
+            <td>Submits a loan application with all required details</td>
+            <td><a href="api-specs/partner-app/06-loanApplication.html">View</a></td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>RLML Loan Application</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/rlmlLoan</code></td>
+            <td>Submits an RLML loan application</td>
+            <td><a href="api-specs/partner-app/07-rlmlLoan.html">View</a></td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>Document Info Send</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/DocumentInfoSend</code></td>
+            <td>Sends document file paths for loan processing</td>
+            <td><a href="api-specs/partner-app/08-DocumentInfoSend.html">View</a></td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>NCB Data</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/ncbData</code></td>
+            <td>Sends NCB credit bureau data for evaluation</td>
+            <td><a href="api-specs/partner-app/09-ncbData.html">View</a></td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>Cancel Loan</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/loanCancel</code></td>
+            <td>Cancels an existing loan application</td>
+            <td><a href="api-specs/partner-app/12-loanCancel.html">View</a></td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td>Check Application Status</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/checkApplicationStatus</code></td>
+            <td>Checks current status of a loan application</td>
+            <td><a href="api-specs/partner-app/13-checkApplicationStatus.html">View</a></td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td>RLML Info Inquiry</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/rlmlInfo</code></td>
+            <td>Retrieves RLML loan information for a customer</td>
+            <td><a href="api-specs/partner-app/14-rlmlInfo.html">View</a></td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td>EMI Inquiry</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/emiInquiry</code></td>
+            <td>Calculates EMI for RLML loans</td>
+            <td><a href="api-specs/partner-app/15-emiInquiry.html">View</a></td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td>Pickup</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/pickup</code></td>
+            <td>Updates pickup status for RLML loan</td>
+            <td><a href="api-specs/partner-app/16-pickup.html">View</a></td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td>Project Inquiry</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/projectInquiry</code></td>
+            <td>Retrieves available project information (cached once per day per OA)</td>
+            <td><a href="api-specs/partner-app/17-projectInquiry.html">View</a></td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td>Promotion Inquiry</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/kbpapp/api/promotionInquiry</code></td>
+            <td>Retrieves available promotion information (cached once per day per OA)</td>
+            <td><a href="api-specs/partner-app/18-promotionInquiry.html">View</a></td>
+        </tr>
+    </table>
+</div>
+
+<!-- GIS Callback APIs -->
+<div class="section">
+    <div class="section-header">
+        <div class="section-number">🔄</div>
+        <div class="section-title">GIS → Partner App (Callback)</div>
+    </div>
+    <p style="margin: 0 0 16px 0; color: #666;">Callback APIs that GIS calls back to the Partner App</p>
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Link</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Evaluation Result Send</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/callback/gis/kbp/evaluationResultSend</code></td>
+            <td>Callback: GIS sends evaluation results</td>
+            <td><a href="api-specs/callback/10-evaluationResultSend.html">View</a></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Sending Approval Letter</td>
+            <td><span class="badge badge-post">POST</span></td>
+            <td><code>/callback/gis/kbp/sendingAL</code></td>
+            <td>Callback: GIS sends approval letter (RL and RLML)</td>
+            <td><a href="api-specs/callback/11-sendingAL.html">View</a></td>
+        </tr>
+    </table>
+</div>
+
+</div>
+</body>
+</html>
