@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller System — Google Cloud Setup Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{--p:#0f172a;--a:#3b82f6;--s:#f8fafc;--b:#e2e8f0;--t:#1e293b;--m:#64748b;--r:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--s);color:var(--t);line-height:1.7;font-size:14px}
+.hero{background:linear-gradient(135deg,#0f172a 0%,#1a4d2e 50%,#166534 100%);color:#fff;padding:60px 40px 40px}
+.hero-inner{max-width:960px;margin:0 auto}
+.hero h1{font-size:30px;font-weight:700;margin-bottom:6px}
+.hero p{color:rgba(255,255,255,.7);font-size:14px}
+.hero-meta{display:flex;gap:20px;margin-top:16px;font-size:12px;color:rgba(255,255,255,.5)}
+.c{max-width:960px;margin:0 auto;padding:0 24px 80px}
+h2{font-size:22px;font-weight:700;margin:48px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--b);color:var(--p)}
+h3{font-size:16px;font-weight:600;margin:28px 0 8px;color:var(--p)}
+h4{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--m)}
+table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:13px}
+thead th{background:var(--p);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:12px}
+thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--b);vertical-align:top}
+tbody tr:hover{background:#f1f5f9}
+.badge{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.bg{background:#d1fae5;color:#065f46}.bb{background:#dbeafe;color:#1d4ed8}.by{background:#fef3c7;color:#92400e}.bp{background:#ede9fe;color:#5b21b6}.br{background:#fef2f2;color:#dc2626}.bi{background:#f1f5f9;color:#475569}
+.sec{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin:14px 0}
+code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.cmd{background:var(--p);color:#e2e8f0;padding:18px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.9;margin:10px 0;overflow-x:auto;white-space:pre}
+.note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+.ok{background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.grid2 .sec{margin:0}
+ul,ol{margin:8px 0 8px 20px;font-size:13px}li{margin:3px 0}
+.toc{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px 28px;margin:24px 0}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.toc li:last-child{border-bottom:none}
+.toc li a{text-decoration:none;color:var(--t);font-weight:500;display:flex;align-items:center;gap:10px}
+.toc li a:hover{color:var(--a)}
+.toc li a::before{content:"0" counter(toc);background:var(--s);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;color:var(--a)}
+.cost{font-family:'IBM Plex Mono',monospace;color:#166534;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="hero-inner">
+<h1>☁️ Teller System — Google Cloud Setup Guide</h1>
+<p>GCP Resources, Cloud Shell Scripts, Infrastructure Setup สำหรับ GKE Autopilot Deployment</p>
+<div class="hero-meta">
+<span>Project: t2b-cluster</span>
+<span>Region: asia-southeast1</span>
+<span>Namespace: tellersystem-uat</span>
+</div>
+</div>
+</div>
+
+<div class="c">
+
+<nav class="toc">
+<ol>
+<li><a href="#s1">GCP Resources Overview</a></li>
+<li><a href="#s2">Prerequisites</a></li>
+<li><a href="#s3">Step 1 — GCP Project Setup</a></li>
+<li><a href="#s4">Step 2 — GKE Autopilot Cluster</a></li>
+<li><a href="#s5">Step 3 — Cloud SQL (SQL Server)</a></li>
+<li><a href="#s6">Step 4 — Artifact Registry</a></li>
+<li><a href="#s7">Step 5 — Static IP & DNS</a></li>
+<li><a href="#s8">Step 6 — Jenkins VM Setup</a></li>
+<li><a href="#s9">Step 7 — Deploy Application</a></li>
+<li><a href="#s10">Step 8 — Deploy Observability</a></li>
+<li><a href="#s11">Step 9 — Verify & Test</a></li>
+<li><a href="#s12">Cost Estimation</a></li>
+<li><a href="#s13">Cleanup Script</a></li>
+</ol>
+</nav>
+
+<!-- ═══════════════ 1. RESOURCES OVERVIEW ═══════════════ -->
+<h2 id="s1">1. GCP Resources Overview</h2>
+
+<div class="sec">
+<table>
+<thead><tr><th>Resource</th><th>GCP Service</th><th>Spec</th><th>Region</th><th>หน้าที่</th></tr></thead>
+<tbody>
+<tr><td><span class="badge bb">GKE Cluster</span></td><td>Google Kubernetes Engine (Autopilot)</td><td>Autopilot (auto-managed nodes)</td><td>asia-southeast1</td><td>รัน microservices + observability stack</td></tr>
+<tr><td><span class="badge bg">SQL Server</span></td><td>Cloud SQL for SQL Server</td><td>Enterprise, 2 vCPU, 8GB RAM</td><td>asia-southeast1</td><td>Database หลัก (teller_db)</td></tr>
+<tr><td><span class="badge bp">PostgreSQL</span></td><td>Cloud SQL for PostgreSQL</td><td>1 vCPU, 3.75GB RAM</td><td>asia-southeast1</td><td>Kong API Gateway database</td></tr>
+<tr><td><span class="badge by">Artifact Registry</span></td><td>Artifact Registry</td><td>Docker repository</td><td>asia-southeast1</td><td>Container image storage</td></tr>
+<tr><td><span class="badge bi">Static IP</span></td><td>Compute Engine (Global IP)</td><td>1 IP address</td><td>Global</td><td>Observability Ingress (34.8.78.45)</td></tr>
+<tr><td><span class="badge br">Jenkins VM</span></td><td>Compute Engine</td><td>e2-standard-4 (4 vCPU, 16GB)</td><td>asia-southeast1-b</td><td>CI/CD Pipeline runner</td></tr>
+<tr><td><span class="badge bi">VPC Network</span></td><td>VPC</td><td>Custom subnet 10.20.0.0/16</td><td>asia-southeast1</td><td>Private networking</td></tr>
+<tr><td><span class="badge bi">Cloud NAT</span></td><td>Cloud NAT</td><td>Auto-allocated IPs</td><td>asia-southeast1</td><td>Outbound internet สำหรับ GKE</td></tr>
+<tr><td><span class="badge bi">Firewall Rules</span></td><td>VPC Firewall</td><td>Allow SSH, HTTP, HTTPS, internal</td><td>-</td><td>Network security</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Architecture Diagram</h3>
+<div class="cmd" style="text-align:center;font-size:11px;line-height:1.4">
+┌─────────────────────────────────────────────────────────────────────┐
+│                    GCP Project: t2b-cluster                         │
+│                    Region: asia-southeast1                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  VPC: default / custom (10.20.0.0/16)                       │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────────────┐   │   │
+│  │  │  GKE Autopilot Cluster: t2b-gke                      │   │   │
+│  │  │  Namespace: tellersystem-uat                          │   │   │
+│  │  │                                                       │   │   │
+│  │  │  Pods:                                                │   │   │
+│  │  │  ├── auth-service (x2)                                │   │   │
+│  │  │  ├── transfer-service (x3)                            │   │   │
+│  │  │  ├── transaction-service (x3)                         │   │   │
+│  │  │  ├── reconciliation-service (x1)                      │   │   │
+│  │  │  ├── notification-service (x2)                        │   │   │
+│  │  │  ├── frontend (x2)                                    │   │   │
+│  │  │  ├── kong (x1) + kong-setup-routes (Job)              │   │   │
+│  │  │  ├── redis (x1)                                       │   │   │
+│  │  │  ├── prometheus (x1)                                  │   │   │
+│  │  │  ├── grafana (x1)                                     │   │   │
+│  │  │  ├── elasticsearch (x1)                               │   │   │
+│  │  │  ├── kibana (x1)                                      │   │   │
+│  │  │  ├── logstash (x1)                                    │   │   │
+│  │  │  ├── jaeger (x1)                                      │   │   │
+│  │  │  ├── otel-collector (x1)                              │   │   │
+│  │  │  ├── redis-exporter (x1)                              │   │   │
+│  │  │  └── filebeat (DaemonSet, 1 per node)                 │   │   │
+│  │  │                                                       │   │   │
+│  │  │  Ingress: observability-ingress → 34.8.78.45          │   │   │
+│  │  │  LoadBalancer: kong, frontend                         │   │   │
+│  │  └──────────────────────────────────────────────────────┘   │   │
+│  │                                                              │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │   │
+│  │  │ Cloud SQL     │  │ Cloud SQL     │  │ Artifact Registry│  │   │
+│  │  │ SQL Server    │  │ PostgreSQL    │  │ t2b (Docker)     │  │   │
+│  │  │ 10.30.0.5     │  │ 10.30.0.6     │  │                  │  │   │
+│  │  │ teller_db     │  │ kong          │  │ 6 service images │  │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────────┘  │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────────────┐   │   │
+│  │  │  Jenkins VM: t2b-vm01-jenkins (e2-standard-4)        │   │   │
+│  │  │  Docker, kubectl, gcloud, Node.js, Trivy, Gitleaks   │   │   │
+│  │  └──────────────────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  Global Static IP: observability-ip → 34.8.78.45                   │
+│  DNS: *.teller.tvdoing.com → 34.8.78.45 (Cloudflare DNS Only)     │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<!-- ═══════════════ 2. PREREQUISITES ═══════════════ -->
+<h2 id="s2">2. Prerequisites</h2>
+
+<div class="sec">
+<ul>
+<li>Google Cloud Account พร้อม Billing enabled</li>
+<li>gcloud CLI ติดตั้งแล้ว (หรือใช้ Cloud Shell)</li>
+<li>Domain name สำหรับ Observability (เช่น *.teller.tvdoing.com)</li>
+<li>GitHub repository สำหรับ source code</li>
+<li>Cloudflare account (สำหรับ DNS management)</li>
+</ul>
+</div>
+
+<div class="note">
+💡 คำสั่งทั้งหมดด้านล่างรันได้ใน <strong>Google Cloud Shell</strong> โดยตรง ไม่ต้องติดตั้งอะไรเพิ่ม
+</div>
+
+<!-- ═══════════════ 3. PROJECT SETUP ═══════════════ -->
+<h2 id="s3">3. Step 1 — GCP Project Setup</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 1: สร้าง Project และเปิด APIs ที่จำเป็น
+# ═══════════════════════════════════════════════════
+
+# ตั้งค่า Project
+export PROJECT_ID="t2b-cluster"
+export REGION="asia-southeast1"
+export ZONE="asia-southeast1-b"
+
+# สร้าง Project (ถ้ายังไม่มี)
+gcloud projects create $PROJECT_ID --name="Teller System T2B"
+
+# ตั้ง Project เป็น default
+gcloud config set project $PROJECT_ID
+gcloud config set compute/region $REGION
+gcloud config set compute/zone $ZONE
+
+# เปิด APIs ที่จำเป็น
+gcloud services enable \
+  container.googleapis.com \
+  sqladmin.googleapis.com \
+  artifactregistry.googleapis.com \
+  compute.googleapis.com \
+  cloudresourcemanager.googleapis.com \
+  iam.googleapis.com \
+  servicenetworking.googleapis.com
+
+echo "✅ Project setup complete"</div>
+
+<!-- ═══════════════ 4. GKE CLUSTER ═══════════════ -->
+<h2 id="s4">4. Step 2 — GKE Autopilot Cluster</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 2: สร้าง GKE Autopilot Cluster
+# ═══════════════════════════════════════════════════
+
+export CLUSTER_NAME="t2b-gke"
+export NAMESPACE="tellersystem-uat"
+
+# สร้าง GKE Autopilot Cluster
+gcloud container clusters create-auto $CLUSTER_NAME \
+  --region=$REGION \
+  --project=$PROJECT_ID \
+  --network=default \
+  --subnetwork=default
+
+# รอ cluster พร้อม (~5-10 นาที)
+gcloud container clusters get-credentials $CLUSTER_NAME \
+  --region=$REGION \
+  --project=$PROJECT_ID
+
+# สร้าง Namespace
+kubectl create namespace $NAMESPACE
+
+# ตรวจสอบ
+kubectl get nodes
+echo "✅ GKE Autopilot cluster ready"</div>
+
+<div class="warn">
+⚠️ GKE Autopilot มีข้อจำกัด: ห้ามใช้ <code>privileged: true</code>, hostPath อนุญาตเฉพาะ <code>/var/log/</code>, ไม่มี DaemonSet สำหรับ node-exporter/cAdvisor (ใช้ GKE built-in metrics แทน)
+</div>
+
+<!-- ═══════════════ 5. CLOUD SQL ═══════════════ -->
+<h2 id="s5">5. Step 3 — Cloud SQL (SQL Server + PostgreSQL)</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 3A: Cloud SQL for SQL Server (teller_db)
+# ═══════════════════════════════════════════════════
+
+# สร้าง Private IP range สำหรับ Cloud SQL
+gcloud compute addresses create google-managed-services-default \
+  --global \
+  --purpose=VPC_PEERING \
+  --prefix-length=16 \
+  --network=default
+
+gcloud services vpc-peerings connect \
+  --service=servicenetworking.googleapis.com \
+  --ranges=google-managed-services-default \
+  --network=default
+
+# สร้าง Cloud SQL for SQL Server
+gcloud sql instances create teller-sqlserver \
+  --database-version=SQLSERVER_2022_ENTERPRISE \
+  --tier=db-custom-2-8192 \
+  --region=$REGION \
+  --network=default \
+  --no-assign-ip \
+  --root-password="TellerPass@123" \
+  --storage-size=50GB \
+  --storage-auto-increase \
+  --availability-type=REGIONAL \
+  --backup-start-time=02:00
+
+# สร้าง Database
+gcloud sql databases create teller_db \
+  --instance=teller-sqlserver
+
+# ดู Private IP
+gcloud sql instances describe teller-sqlserver \
+  --format="get(ipAddresses[0].ipAddress)"
+
+echo "✅ Cloud SQL for SQL Server ready"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 3B: Cloud SQL for PostgreSQL (Kong)
+# ═══════════════════════════════════════════════════
+
+gcloud sql instances create kong-postgres \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=$REGION \
+  --network=default \
+  --no-assign-ip \
+  --root-password="T2b@Kong2024!" \
+  --storage-size=10GB
+
+gcloud sql databases create kong \
+  --instance=kong-postgres
+
+gcloud sql users create kong \
+  --instance=kong-postgres \
+  --password="T2b@Kong2024!"
+
+# ดู Private IP
+gcloud sql instances describe kong-postgres \
+  --format="get(ipAddresses[0].ipAddress)"
+
+echo "✅ Cloud SQL for PostgreSQL (Kong) ready"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 3C: Initialize Database Schema
+# ═══════════════════════════════════════════════════
+
+# ใช้ Cloud SQL Proxy หรือ connect จาก GKE pod
+# Option 1: จาก Jenkins VM
+SQLSERVER_IP=$(gcloud sql instances describe teller-sqlserver \
+  --format="get(ipAddresses[0].ipAddress)")
+
+# รัน init.sql ผ่าน sqlcmd
+sqlcmd -S $SQLSERVER_IP -U sa -P "TellerPass@123" \
+  -C -i infrastructure/db/init.sql
+
+echo "✅ Database schema initialized"</div>
+
+<!-- ═══════════════ 6. ARTIFACT REGISTRY ═══════════════ -->
+<h2 id="s6">6. Step 4 — Artifact Registry</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 4: สร้าง Artifact Registry สำหรับ Docker images
+# ═══════════════════════════════════════════════════
+
+export AR_REPO="t2b"
+
+gcloud artifacts repositories create $AR_REPO \
+  --repository-format=docker \
+  --location=$REGION \
+  --description="Teller System container images"
+
+# Configure Docker auth
+gcloud auth configure-docker ${REGION}-docker.pkg.dev
+
+# ตรวจสอบ
+gcloud artifacts repositories list --location=$REGION
+
+echo "✅ Artifact Registry ready"
+echo "Registry URL: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}"</div>
+
+<!-- ═══════════════ 7. STATIC IP & DNS ═══════════════ -->
+<h2 id="s7">7. Step 5 — Static IP & DNS</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 5: จอง Global Static IP สำหรับ Observability Ingress
+# ═══════════════════════════════════════════════════
+
+gcloud compute addresses create observability-ip \
+  --global \
+  --project=$PROJECT_ID
+
+# ดู IP ที่ได้
+STATIC_IP=$(gcloud compute addresses describe observability-ip \
+  --global --format="get(address)")
+echo "Static IP: $STATIC_IP"
+
+echo ""
+echo "═══════════════════════════════════════════════"
+echo "  ตั้ง DNS Records ที่ Cloudflare (DNS Only):"
+echo "═══════════════════════════════════════════════"
+echo "  grafana.teller.tvdoing.com      A  $STATIC_IP"
+echo "  jaeger.teller.tvdoing.com       A  $STATIC_IP"
+echo "  kibana.teller.tvdoing.com       A  $STATIC_IP"
+echo "  prometheus.teller.tvdoing.com   A  $STATIC_IP"
+echo "═══════════════════════════════════════════════"
+echo ""
+echo "⚠️  ใช้ DNS Only mode (ไม่ใช้ Cloudflare Proxy)"
+echo "✅ Static IP reserved"</div>
+
+<!-- ═══════════════ 8. JENKINS VM ═══════════════ -->
+<h2 id="s8">8. Step 6 — Jenkins VM Setup</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 6A: สร้าง Jenkins VM
+# ═══════════════════════════════════════════════════
+
+gcloud compute instances create t2b-vm01-jenkins \
+  --zone=$ZONE \
+  --machine-type=e2-standard-4 \
+  --image-family=ubuntu-2204-lts \
+  --image-project=ubuntu-os-cloud \
+  --boot-disk-size=100GB \
+  --boot-disk-type=pd-balanced \
+  --tags=jenkins-server \
+  --scopes=cloud-platform \
+  --metadata=startup-script='#!/bin/bash
+    apt-get update
+    apt-get install -y docker.io
+    systemctl enable docker
+    systemctl start docker
+    usermod -aG docker $USER
+  '
+
+# Firewall rule สำหรับ Jenkins UI
+gcloud compute firewall-rules create allow-jenkins \
+  --allow=tcp:8080,tcp:22 \
+  --target-tags=jenkins-server \
+  --source-ranges=0.0.0.0/0
+
+echo "✅ Jenkins VM created"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 6B: ติดตั้ง Tools บน Jenkins VM
+# (SSH เข้า VM แล้วรัน)
+# ═══════════════════════════════════════════════════
+
+# SSH เข้า VM
+gcloud compute ssh t2b-vm01-jenkins --zone=$ZONE
+
+# --- รันคำสั่งด้านล่างใน VM ---
+
+# Install Java (Jenkins requirement)
+sudo apt-get update
+sudo apt-get install -y openjdk-17-jdk
+
+# Install Jenkins
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
+  sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/" | \
+  sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y jenkins
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+
+# Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s \
+  https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Install gcloud CLI (ถ้ายังไม่มี)
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+gcloud init
+
+# Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install Docker
+sudo apt-get install -y docker.io
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+
+# Install Trivy
+sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+  gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] \
+  https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+  sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install -y trivy
+
+# Install Gitleaks
+wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
+tar -xzf gitleaks_8.18.2_linux_x64.tar.gz
+sudo mv gitleaks /usr/local/bin/
+
+# Connect to GKE
+gcloud container clusters get-credentials t2b-gke \
+  --region=asia-southeast1 \
+  --project=t2b-cluster \
+  --internal-ip
+
+echo "✅ Jenkins VM tools installed"</div>
+
+<!-- ═══════════════ 9. DEPLOY APPLICATION ═══════════════ -->
+<h2 id="s9">9. Step 7 — Deploy Application to GKE</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 7A: Build & Push Docker Images
+# (รันจาก Jenkins VM หรือ local ที่มี Docker)
+# ═══════════════════════════════════════════════════
+
+export AR_REGISTRY="asia-southeast1-docker.pkg.dev/t2b-cluster/t2b"
+
+# Authenticate Docker กับ Artifact Registry
+gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+# Build & Push ทุก service
+SERVICES="auth-service transfer-service transaction-service reconciliation-service notification-service frontend"
+TAG="latest"
+
+for svc in $SERVICES; do
+  echo "Building $svc..."
+  docker build -t ${AR_REGISTRY}/${svc}:${TAG} -f services/${svc}/Dockerfile .
+  docker push ${AR_REGISTRY}/${svc}:${TAG}
+  echo "✅ $svc pushed"
+done
+
+echo "✅ All images pushed to Artifact Registry"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 7B: Deploy K8s Manifests
+# ═══════════════════════════════════════════════════
+
+export NAMESPACE="tellersystem-uat"
+
+# Connect to GKE
+gcloud container clusters get-credentials t2b-gke \
+  --region=asia-southeast1 \
+  --project=t2b-cluster
+
+# Create namespace
+kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+# Replace image tag placeholder
+sed -i "s|IMAGE_TAG_PLACEHOLDER|latest|g" k8s/*.yaml
+
+# Delete old jobs (if exist)
+kubectl delete job kong-setup-routes -n $NAMESPACE --ignore-not-found=true
+kubectl delete job kong-migration -n $NAMESPACE --ignore-not-found=true
+
+# Apply all K8s manifests
+kubectl apply -f k8s/ -n $NAMESPACE
+
+# Wait for rollout
+for svc in auth-service transfer-service transaction-service \
+           reconciliation-service notification-service frontend kong redis; do
+  echo "Waiting for $svc..."
+  kubectl rollout status deployment/$svc -n $NAMESPACE --timeout=300s || true
+done
+
+echo "✅ Application deployed to GKE"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 7C: Verify Application
+# ═══════════════════════════════════════════════════
+
+# ดู pods ทั้งหมด
+kubectl get pods -n $NAMESPACE
+
+# ดู services
+kubectl get svc -n $NAMESPACE
+
+# ดู Kong external IP
+kubectl get svc kong -n $NAMESPACE \
+  -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+echo ""
+
+# ดู Frontend external IP
+kubectl get svc frontend -n $NAMESPACE \
+  -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+echo ""
+
+echo "✅ Application verified"</div>
+
+<!-- ═══════════════ 10. DEPLOY OBSERVABILITY ═══════════════ -->
+<h2 id="s10">10. Step 8 — Deploy Observability Stack</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 8A: Deploy Grafana Dashboards as ConfigMap
+# ═══════════════════════════════════════════════════
+
+kubectl create configmap grafana-dashboards \
+  --from-file=observability/grafana/dashboards/ \
+  -n $NAMESPACE \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+echo "✅ Grafana dashboards ConfigMap created"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 8B: Deploy Observability K8s Manifests
+# ═══════════════════════════════════════════════════
+
+# Deploy observability stack
+kubectl apply -f k8s/observability.yaml -n $NAMESPACE
+kubectl apply -f k8s/observability-ingress.yaml -n $NAMESPACE
+
+# Wait for rollout
+for svc in prometheus grafana elasticsearch kibana jaeger \
+           otel-collector logstash redis-exporter; do
+  echo "Waiting for $svc..."
+  kubectl rollout status deployment/$svc -n $NAMESPACE --timeout=300s || true
+done
+
+# Check Filebeat DaemonSet
+kubectl get daemonset filebeat -n $NAMESPACE
+
+echo "✅ Observability stack deployed"</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 8C: Verify Observability
+# ═══════════════════════════════════════════════════
+
+# Check Ingress
+kubectl get ingress observability-ingress -n $NAMESPACE
+
+# Check Prometheus targets
+PROM_POD=$(kubectl get pod -n $NAMESPACE -l app=prometheus \
+  -o jsonpath='{.items[0].metadata.name}')
+kubectl exec $PROM_POD -n $NAMESPACE -- \
+  wget -qO- "http://localhost:9090/api/v1/targets" | \
+  python3 -c "import sys,json; data=json.load(sys.stdin); \
+  [print(f\"{t['labels']['job']}: {t['health']}\") \
+  for t in data['data']['activeTargets']]"
+
+# Check Grafana health
+kubectl exec -n $NAMESPACE deploy/grafana -- \
+  wget -qO- "http://localhost:3000/api/health"
+
+# Check Elasticsearch
+kubectl exec -n $NAMESPACE deploy/elasticsearch -- \
+  curl -sf "http://localhost:9200/_cluster/health"
+
+echo ""
+echo "═══════════════════════════════════════════════"
+echo "  Observability URLs:"
+echo "═══════════════════════════════════════════════"
+echo "  Grafana:     http://grafana.teller.tvdoing.com"
+echo "  Jaeger:      http://jaeger.teller.tvdoing.com"
+echo "  Kibana:      http://kibana.teller.tvdoing.com"
+echo "  Prometheus:  http://prometheus.teller.tvdoing.com"
+echo "═══════════════════════════════════════════════"</div>
+
+<!-- ═══════════════ 11. VERIFY & TEST ═══════════════ -->
+<h2 id="s11">11. Step 9 — Verify & Test</h2>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# Step 9: End-to-End Verification
+# ═══════════════════════════════════════════════════
+
+NAMESPACE="tellersystem-uat"
+
+echo "=== 1. Test Auth Service ==="
+TOKEN=$(kubectl exec -n $NAMESPACE deploy/grafana -- \
+  wget -qO- --post-data='{"username":"teller01","password":"teller123"}' \
+  --header='Content-Type: application/json' \
+  "http://auth-service:3005/api/v1/auth/login" 2>/dev/null | \
+  python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))")
+echo "Token: ${TOKEN:0:30}..."
+
+echo ""
+echo "=== 2. Test Transfer ==="
+kubectl exec -n $NAMESPACE deploy/grafana -- \
+  wget -qO- --post-data='{"fromAccount":"1001000001","toAccount":"1234567891","amount":100,"currency":"THB","description":"verify test"}' \
+  --header="Content-Type: application/json" \
+  --header="Authorization: Bearer $TOKEN" \
+  --header="x-idempotency-key: verify-$(date +%s)" \
+  "http://transfer-service:3001/api/v1/transfers" 2>/dev/null
+echo ""
+
+echo ""
+echo "=== 3. Test Metrics Endpoint ==="
+kubectl exec -n $NAMESPACE deploy/grafana -- \
+  wget -qO- "http://transfer-service:3001/api/v1/metrics" 2>/dev/null | \
+  grep "teller_transfer_total"
+
+echo ""
+echo "=== 4. Test Elasticsearch ==="
+kubectl exec -n $NAMESPACE deploy/elasticsearch -- \
+  curl -sf "http://localhost:9200/_cat/indices/teller-*?v&h=index,docs.count"
+
+echo ""
+echo "=== 5. Check All Pods ==="
+kubectl get pods -n $NAMESPACE --no-headers | \
+  awk '{print $1, $2, $3}' | column -t
+
+echo ""
+echo "✅ All verifications complete"</div>
+
+<!-- ═══════════════ 12. COST ESTIMATION ═══════════════ -->
+<h2 id="s12">12. Cost Estimation</h2>
+
+<div class="sec">
+<table>
+<thead><tr><th>Resource</th><th>Spec</th><th>ราคาโดยประมาณ (USD/เดือน)</th></tr></thead>
+<tbody>
+<tr><td>GKE Autopilot</td><td>~20 pods, auto-managed</td><td class="cost">~$150-250</td></tr>
+<tr><td>Cloud SQL (SQL Server Enterprise)</td><td>2 vCPU, 8GB RAM, 50GB</td><td class="cost">~$300-400</td></tr>
+<tr><td>Cloud SQL (PostgreSQL)</td><td>f1-micro, 10GB</td><td class="cost">~$10-15</td></tr>
+<tr><td>Artifact Registry</td><td>~5GB storage</td><td class="cost">~$1-2</td></tr>
+<tr><td>Global Static IP</td><td>1 IP (in use)</td><td class="cost">~$0 (free when in use)</td></tr>
+<tr><td>Jenkins VM (e2-standard-4)</td><td>4 vCPU, 16GB, 100GB disk</td><td class="cost">~$100-130</td></tr>
+<tr><td>Cloud NAT</td><td>Auto-allocated</td><td class="cost">~$30-50</td></tr>
+<tr><td>Network Egress</td><td>~50GB/month</td><td class="cost">~$5-10</td></tr>
+</tbody>
+<tfoot>
+<tr><td colspan="2" style="font-weight:700">Total Estimated</td><td class="cost" style="font-size:16px">~$600-860 / เดือน</td></tr>
+</tfoot>
+</table>
+</div>
+
+<div class="note">
+💡 ราคาเป็นการประมาณสำหรับ UAT environment — Production จะสูงกว่า 2-3 เท่าเนื่องจาก replicas มากขึ้น, HA database, และ reserved instances
+</div>
+
+<!-- ═══════════════ 13. CLEANUP ═══════════════ -->
+<h2 id="s13">13. Cleanup Script</h2>
+
+<div class="warn">
+⚠️ คำสั่งด้านล่างจะลบ resources ทั้งหมด — ใช้เมื่อต้องการ teardown environment เท่านั้น
+</div>
+
+<div class="cmd"># ═══════════════════════════════════════════════════
+# CLEANUP: ลบ resources ทั้งหมด
+# ═══════════════════════════════════════════════════
+
+export PROJECT_ID="t2b-cluster"
+export REGION="asia-southeast1"
+export ZONE="asia-southeast1-b"
+
+# 1. ลบ GKE Cluster
+gcloud container clusters delete t2b-gke \
+  --region=$REGION --project=$PROJECT_ID --quiet
+
+# 2. ลบ Cloud SQL instances
+gcloud sql instances delete teller-sqlserver \
+  --project=$PROJECT_ID --quiet
+gcloud sql instances delete kong-postgres \
+  --project=$PROJECT_ID --quiet
+
+# 3. ลบ Artifact Registry
+gcloud artifacts repositories delete t2b \
+  --location=$REGION --project=$PROJECT_ID --quiet
+
+# 4. ลบ Static IP
+gcloud compute addresses delete observability-ip \
+  --global --project=$PROJECT_ID --quiet
+
+# 5. ลบ Jenkins VM
+gcloud compute instances delete t2b-vm01-jenkins \
+  --zone=$ZONE --project=$PROJECT_ID --quiet
+
+# 6. ลบ Firewall rules
+gcloud compute firewall-rules delete allow-jenkins \
+  --project=$PROJECT_ID --quiet
+
+echo "✅ All resources cleaned up"
+echo "⚠️  อย่าลืมลบ DNS records ที่ Cloudflare ด้วย"</div>
+
+</div>
+
+<footer style="text-align:center;padding:40px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:60px">
+<p>Teller System — Google Cloud Setup Guide</p>
+<p style="font-size:12px;margin-top:4px">GKE Autopilot · Cloud SQL · Artifact Registry · Jenkins · Observability Stack</p>
+</footer>
+
+</body>
+</html>
