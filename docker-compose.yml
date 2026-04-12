@@ -123,6 +123,13 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: "TellerPass@123"
       DB_DATABASE: teller_db
+      # Always On AG (disabled for local dev)
+      DB_MULTI_SUBNET_FAILOVER: "false"
+      DB_APP_INTENT: "ReadWrite"
+      DB_ENCRYPT: "false"
+      DB_TRUST_CERT: "true"
+      DB_RETRY_COUNT: 3
+      DB_RETRY_INTERVAL: 1000
       JWT_SECRET: "teller-jwt-secret-change-in-production"
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -159,6 +166,13 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: "TellerPass@123"
       DB_DATABASE: teller_db
+      # Always On AG (disabled for local dev)
+      DB_MULTI_SUBNET_FAILOVER: "false"
+      DB_APP_INTENT: "ReadWrite"
+      DB_ENCRYPT: "false"
+      DB_TRUST_CERT: "true"
+      DB_RETRY_COUNT: 3
+      DB_RETRY_INTERVAL: 1000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: tellerpass
@@ -194,6 +208,13 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: "TellerPass@123"
       DB_DATABASE: teller_db
+      # Always On AG (disabled for local dev)
+      DB_MULTI_SUBNET_FAILOVER: "false"
+      DB_APP_INTENT: "ReadWrite"
+      DB_ENCRYPT: "false"
+      DB_TRUST_CERT: "true"
+      DB_RETRY_COUNT: 3
+      DB_RETRY_INTERVAL: 1000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: tellerpass
@@ -228,6 +249,13 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: "TellerPass@123"
       DB_DATABASE: teller_db
+      # Always On AG (disabled for local dev)
+      DB_MULTI_SUBNET_FAILOVER: "false"
+      DB_APP_INTENT: "ReadWrite"
+      DB_ENCRYPT: "false"
+      DB_TRUST_CERT: "true"
+      DB_RETRY_COUNT: 3
+      DB_RETRY_INTERVAL: 1000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: tellerpass

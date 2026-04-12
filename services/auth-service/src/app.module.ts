@@ -19,9 +19,27 @@ import { RefreshToken } from './entities/refresh-token.entity';
       entities: [User, RefreshToken],
       synchronize: false,
       extra: {
-        trustServerCertificate: true,
-        pool: { max: 10, min: 2, idleTimeoutMillis: 10000 },
-        options: { encrypt: false },
+        trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
+        pool: {
+          max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+          min: parseInt(process.env.DB_POOL_MIN || '2', 10),
+          idleTimeoutMillis: 10000,
+          acquireTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '30000', 10),
+        },
+        options: {
+          encrypt: process.env.DB_ENCRYPT === 'true',
+          // ── Always On AG Failover ──
+          multiSubnetFailover: process.env.DB_MULTI_SUBNET_FAILOVER === 'true',
+          ...(process.env.DB_FAILOVER_PARTNER && {
+            failoverPartner: process.env.DB_FAILOVER_PARTNER,
+          }),
+          applicationIntent: process.env.DB_APP_INTENT || 'ReadWrite',
+          connectRetryCount: parseInt(process.env.DB_RETRY_COUNT || '3', 10),
+          connectRetryInterval: parseInt(process.env.DB_RETRY_INTERVAL || '1000', 10),
+          connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT || '30000', 10),
+          requestTimeout: parseInt(process.env.DB_REQUEST_TIMEOUT || '30000', 10),
+          cancelTimeout: 5000,
+        },
       },
     }),
     JwtModule.register({

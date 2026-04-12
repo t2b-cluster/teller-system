@@ -16,6 +16,16 @@ data:
   DB_PORT: "1433"
   DB_DATABASE: "teller_db"
   DB_USERNAME: "sa"
+  # ── Always On AG Failover ──
+  DB_FAILOVER_PARTNER: ""              # เช่น "10.30.0.6" (secondary replica)
+  DB_MULTI_SUBNET_FAILOVER: "true"     # เปิดสำหรับ AG Listener multi-subnet
+  DB_APP_INTENT: "ReadWrite"           # "ReadOnly" สำหรับ read-replica routing
+  DB_ENCRYPT: "true"                   # เปิด encryption สำหรับ production
+  DB_TRUST_CERT: "false"               # false สำหรับ production (ใช้ CA cert จริง)
+  DB_CONNECT_TIMEOUT: "30000"
+  DB_REQUEST_TIMEOUT: "30000"
+  DB_RETRY_COUNT: "3"
+  DB_RETRY_INTERVAL: "1000"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   AUTH_SERVICE_URL: "http://auth-service:3005"

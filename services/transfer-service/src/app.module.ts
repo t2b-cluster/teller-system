@@ -24,12 +24,26 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       entities: [Account, Transaction, OutboxMessage, IdempotencyKey],
       synchronize: false,
       extra: {
-        trustServerCertificate: true,
-        pool: { max: 20, min: 5, idleTimeoutMillis: 10000 },
+        trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
+        pool: {
+          max: parseInt(process.env.DB_POOL_MAX || '20', 10),
+          min: parseInt(process.env.DB_POOL_MIN || '5', 10),
+          idleTimeoutMillis: 10000,
+          acquireTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '30000', 10),
+        },
         options: {
-          encrypt: false,
-          connectRetryCount: 3,
-          connectRetryInterval: 1000,
+          encrypt: process.env.DB_ENCRYPT === 'true',
+          // ── Always On AG Failover ──
+          multiSubnetFailover: process.env.DB_MULTI_SUBNET_FAILOVER === 'true',
+          ...(process.env.DB_FAILOVER_PARTNER && {
+            failoverPartner: process.env.DB_FAILOVER_PARTNER,
+          }),
+          applicationIntent: process.env.DB_APP_INTENT || 'ReadWrite',
+          connectRetryCount: parseInt(process.env.DB_RETRY_COUNT || '3', 10),
+          connectRetryInterval: parseInt(process.env.DB_RETRY_INTERVAL || '1000', 10),
+          connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT || '30000', 10),
+          requestTimeout: parseInt(process.env.DB_REQUEST_TIMEOUT || '30000', 10),
+          cancelTimeout: 5000,
         },
       },
     }),
